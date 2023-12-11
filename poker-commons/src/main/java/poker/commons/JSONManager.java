@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 
 public class JSONManager {
-    public static ReceiveData jsonParse(CharBuffer charbuff){
+    public static ReceiveData jsonParse(String charbuff){
         Gson gson = new Gson();
 
         return gson.fromJson(charbuff.toString(), ReceiveData.class);

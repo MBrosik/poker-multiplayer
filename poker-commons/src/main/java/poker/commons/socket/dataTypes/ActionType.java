@@ -1,4 +1,4 @@
-package poker.commons.socket;
+package poker.commons.socket.dataTypes;
 
 public enum ActionType {
     CreateRoom,

@@ -14,8 +14,27 @@ public class MyScanner {
         MyLogger.log("Wpisz: ");
         return scanner.next();
     }
+    public static String getStreamString(String msg){
+        MyLogger.log(msg);
+        return scanner.next();
+    }
     public static int getStreamInt(){
         MyLogger.log("Wpisz: ");
         return scanner.nextInt();
+    }
+
+    public static int getStreamInt(String msg){
+        MyLogger.log(msg);
+//        scanner.nextLong();
+        return scanner.nextInt();
+    }
+    public static long getStreamLong(){
+        MyLogger.log("Wpisz: ");
+        return scanner.nextLong();
+    }
+
+    public static long getStreamLong(String msg){
+        MyLogger.log(msg);
+        return scanner.nextLong();
     }
 }

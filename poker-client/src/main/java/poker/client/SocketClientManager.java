@@ -2,17 +2,17 @@ package poker.client;
 
 import poker.commons.Constants;
 import poker.commons.JSONManager;
+import poker.commons.MyLogger;
 import poker.commons.socket.ReceiveData;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 
 public class SocketClientManager {
     SocketChannel socketChannel;
-
-
     public static SocketClientManager i = new SocketClientManager();
 
     public SocketClientManager() {
@@ -24,7 +24,7 @@ public class SocketClientManager {
         }
     }
 
-    public String send(ReceiveData data, boolean withResponse) {
+    public ReceiveData send(ReceiveData data, boolean withResponse) {
         try {
 //            SocketChannel socketChannel = SocketChannel.open();
 //            socketChannel.connect(new InetSocketAddress("localhost", 8080));
@@ -45,10 +45,8 @@ public class SocketClientManager {
                 System.out.println("response=" + response);
                 buffer.clear();
             }
-
-//            socketChannel.close();
-
-            return response;
+            // MyLogger.logln(response);
+            return JSONManager.jsonParse(response);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,16 +1,15 @@
 package poker.server.game;
 
-import poker.commons.JSONManager;
-import poker.commons.socket.ActionType;
+import com.google.gson.Gson;
+import poker.commons.socket.dataTypes.ActionType;
+import poker.commons.socket.dataTypes.joinRoom.JoinRoomStatus;
 import poker.commons.socket.ReceiveData;
 import poker.server.socket.SessionData;
+import poker.server.socket.SocketManager;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class RoomManager {
     public static HashMap<Long,Room> rooms = new HashMap<>();
@@ -19,15 +18,31 @@ public class RoomManager {
         Room room = new Room();
         rooms.put(room.getGameId(), room);
 
+        //room;
         playerData.setRoom(room);
 
-        SocketChannel client = (SocketChannel) key.channel();
-        ReceiveData sendData = new ReceiveData();
+        ReceiveData sendData = new ReceiveData(ActionType.CreateRoom, room.getGameId());
+        SocketManager.sendToClient(key, sendData);
 
-        sendData.setAction(ActionType.JoinRoom);
-        sendData.setData(room.getGameId());
+//        var test1 = new Gson();
 
+//        System.out.println(test1.toJson(rooms.keySet()));
+    }
+    public static void joinRoom(SelectionKey key, SessionData playerData, double id) throws IOException {
+        System.out.println(id);
+        var room = rooms.get((long) id);
+        ReceiveData sendData;
 
-        client.write(JSONManager.jsonStringify(sendData));
+        if(room == null){
+            sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.notExists);
+        }
+        else if(room.isFull()){
+            sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.roomIsFull);
+        }
+        else{
+            room.addPlayer(playerData);
+            sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.added);
+        }
+        SocketManager.sendToClient(key, sendData);
     }
 }

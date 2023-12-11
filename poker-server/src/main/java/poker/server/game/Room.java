@@ -2,11 +2,15 @@ package poker.server.game;
 
 import lombok.Data;
 import lombok.Getter;
+import poker.server.socket.SessionData;
 
+import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 
 
 public class Room {
+    public static final int minSize = 2;
+    public static final int maxSize = 4;
 
     public enum RoomState {
         PlayerGathering,
@@ -26,4 +30,17 @@ public class Room {
 
         gameId = System.currentTimeMillis() * 1000 + randomInRange;
     }
+
+    public boolean addPlayer(SessionData sessionData){
+        players.add(new Player(sessionData));
+        return true;
+    }
+
+    public boolean removePlayer(SessionData sessionData){
+        return false;
+    }
+    public boolean isFull(){
+        return players.size() == maxSize;
+    }
+
 }
