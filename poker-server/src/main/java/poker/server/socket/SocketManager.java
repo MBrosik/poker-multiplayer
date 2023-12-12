@@ -3,7 +3,6 @@ package poker.server.socket;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
@@ -32,6 +31,7 @@ public class SocketManager {
         switch (receiveData.getAction()){
             case CreateRoom -> RoomManager.createRoom(key, sessions.get(key));
             case JoinRoom -> RoomManager.joinRoom(key, sessions.get(key), (double) receiveData.getData());
+            case ReadyToPlay -> RoomManager.tagPlayerAsReady(sessions.get(key));
         }
     }
     public static void sendToClient(SelectionKey key, ReceiveData data) throws IOException {

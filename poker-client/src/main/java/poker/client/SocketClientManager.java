@@ -2,17 +2,15 @@ package poker.client;
 
 import poker.commons.Constants;
 import poker.commons.JSONManager;
-import poker.commons.MyLogger;
 import poker.commons.socket.ReceiveData;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.channels.SocketChannel;
 
 public class SocketClientManager {
-    SocketChannel socketChannel;
+    public SocketChannel socketChannel;
     public static SocketClientManager i = new SocketClientManager();
 
     public SocketClientManager() {
@@ -26,30 +24,33 @@ public class SocketClientManager {
 
     public ReceiveData send(ReceiveData data, boolean withResponse) {
         try {
-//            SocketChannel socketChannel = SocketChannel.open();
-//            socketChannel.connect(new InetSocketAddress("localhost", 8080));
-
-
             ByteBuffer buffer = JSONManager.jsonStringify(data);
             socketChannel.write(buffer);
 
             buffer.clear();
             buffer = ByteBuffer.allocate(Constants.byteSize);
 
-            String response = null;
-
             if (withResponse) {
                 socketChannel.read(buffer);
-                response = new String(buffer.array()).trim();
+                String response = new String(buffer.array()).trim();
 
-                System.out.println("response=" + response);
                 buffer.clear();
+                return JSONManager.jsonParse(response);
             }
-            // MyLogger.logln(response);
-            return JSONManager.jsonParse(response);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
     }
+
+    public ReceiveData getDataFromServer() throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.byteSize);
+        socketChannel.read(buffer);
+
+        String response = new String(buffer.array()).trim();
+
+        return JSONManager.jsonParse(response);
+    }
+
 }

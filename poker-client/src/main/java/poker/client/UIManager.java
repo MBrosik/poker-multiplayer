@@ -1,7 +1,6 @@
 package poker.client;
 
 import poker.commons.MyLogger;
-import poker.commons.MyScanner;
 
 public class UIManager {
     public static void showHomeScreen(){
@@ -16,6 +15,8 @@ public class UIManager {
         MyLogger.logLineSep();
         MyLogger.logln("Twój pokój został stworzony");
         MyLogger.logf("Numer pokoju: %d\n", (long) code);
+        MyLogger.logln("Wybierz opcje:");
+        MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
         MyLogger.logLineSep();
     }
 
@@ -24,6 +25,12 @@ public class UIManager {
         MyLogger.logln("Zostałeś dodany do pokoju");
         MyLogger.logln("Wybierz opcje:");
         MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
+        MyLogger.logLineSep();
+    }
+
+    public static void showGameIsStartedScreen(){
+        MyLogger.logLineSep();
+        MyLogger.logln("Gra się rozpoczęła");
         MyLogger.logLineSep();
     }
 }

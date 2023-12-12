@@ -1,6 +1,7 @@
 package poker.server.socket;
 
 import lombok.Data;
+import poker.server.game.Player;
 import poker.server.game.Room;
 
 import java.nio.channels.SelectionKey;
@@ -9,4 +10,5 @@ import java.nio.channels.SelectionKey;
 public class SessionData {
     Room room = null;
     SelectionKey key;
+    Player player;
 }

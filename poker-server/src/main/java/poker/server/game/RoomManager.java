@@ -1,9 +1,8 @@
 package poker.server.game;
 
-import com.google.gson.Gson;
+import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
 import poker.commons.socket.dataTypes.joinRoom.JoinRoomStatus;
-import poker.commons.socket.ReceiveData;
 import poker.server.socket.SessionData;
 import poker.server.socket.SocketManager;
 
@@ -18,7 +17,7 @@ public class RoomManager {
         Room room = new Room();
         rooms.put(room.getGameId(), room);
 
-        //room;
+        room.addPlayer(playerData);
         playerData.setRoom(room);
 
         ReceiveData sendData = new ReceiveData(ActionType.CreateRoom, room.getGameId());
@@ -41,8 +40,27 @@ public class RoomManager {
         }
         else{
             room.addPlayer(playerData);
+            playerData.setRoom(room);
             sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.added);
         }
         SocketManager.sendToClient(key, sendData);
+    }
+
+    public static void tagPlayerAsReady(SessionData playerData) throws IOException {
+        playerData.getPlayer().setReadyToPlay(true);
+        var room = playerData.getRoom();
+
+        if(room.areAllPlayersReady()){
+            startGame(room);
+        }
+    }
+
+    public static void startGame(Room room) throws IOException {
+
+
+        for (Player player:room.players) {
+            ReceiveData data = new ReceiveData(ActionType.GameStarted, null);
+            SocketManager.sendToClient(player.sessionData.getKey(), data);
+        }
     }
 }

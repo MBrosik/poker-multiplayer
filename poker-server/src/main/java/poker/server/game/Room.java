@@ -1,10 +1,8 @@
 package poker.server.game;
 
-import lombok.Data;
 import lombok.Getter;
 import poker.server.socket.SessionData;
 
-import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 
 
@@ -31,16 +29,21 @@ public class Room {
         gameId = System.currentTimeMillis() * 1000 + randomInRange;
     }
 
-    public boolean addPlayer(SessionData sessionData){
-        players.add(new Player(sessionData));
-        return true;
+    public void addPlayer(SessionData sessionData) {
+        var player = new Player(sessionData);
+        players.add(player);
+        sessionData.setPlayer(player);
     }
 
-    public boolean removePlayer(SessionData sessionData){
+    public boolean removePlayer(SessionData sessionData) {
         return false;
     }
-    public boolean isFull(){
+
+    public boolean isFull() {
         return players.size() == maxSize;
     }
 
+    public boolean areAllPlayersReady(){
+        return players.stream().allMatch(Player::isReadyToPlay);
+    }
 }
