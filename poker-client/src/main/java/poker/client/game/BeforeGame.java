@@ -29,6 +29,7 @@ public class BeforeGame {
     }
 
     private static void getRoom() throws IOException {
+        MyLogger.logLineSep();
         long code = MyScanner.getStreamLong("Wpisz kod: ");
         ReceiveData receiveData = new ReceiveData(ActionType.JoinRoom, code);
         ReceiveData res = SocketClientManager.i.send(receiveData, true);
@@ -65,8 +66,8 @@ public class BeforeGame {
 
         var receivedData = SocketClientManager.i.getDataFromServer();
 
-        if(receivedData.getAction() == ActionType.GameStarted){
-            WhileGame.start();
+        if(receivedData.getAction() == ActionType.SmallBlindBetTurn){
+            WhileGame.start(receivedData);
         }
     }
 }

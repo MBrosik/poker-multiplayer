@@ -25,13 +25,15 @@ public class SocketManager {
         onConnect(key);
 
         ReceiveData receiveData = JSONManager.jsonParse(buffer.toString());
+        SessionData session = sessions.get(key);
 
 //        System.out.println(":( "+receiveData.getData());
 
         switch (receiveData.getAction()){
-            case CreateRoom -> RoomManager.createRoom(key, sessions.get(key));
-            case JoinRoom -> RoomManager.joinRoom(key, sessions.get(key), (double) receiveData.getData());
-            case ReadyToPlay -> RoomManager.tagPlayerAsReady(sessions.get(key));
+            case CreateRoom -> RoomManager.createRoom(key, session);
+            case JoinRoom -> RoomManager.joinRoom(key, session, (double) receiveData.getData());
+            case ReadyToPlay -> RoomManager.tagPlayerAsReady(session);
+            case Bet -> session.getRoom().getBet(session.getPlayer(), receiveData);
         }
     }
     public static void sendToClient(SelectionKey key, ReceiveData data) throws IOException {

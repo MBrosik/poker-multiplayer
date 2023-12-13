@@ -18,6 +18,14 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+<!--        <sonar.projectKey>Poker</sonar.projectKey>-->
+        <sonar.projectKey>
+            Poker-${project.groupId}:${project.artifactId}
+        </sonar.projectKey>
+        <sonar.projectName>Poker-${project.groupId}:${project.artifactId}</sonar.projectName>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.login>sqp_22401a3e7a2ede0cda05e0a2715b204603680952</sonar.login>
     </properties>
 
     <dependencies>

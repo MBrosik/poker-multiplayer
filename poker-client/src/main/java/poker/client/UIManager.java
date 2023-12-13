@@ -1,6 +1,7 @@
 package poker.client;
 
 import poker.commons.MyLogger;
+import poker.commons.socket.dataTypes.whileGame.PlayerType;
 
 public class UIManager {
     public static void showHomeScreen(){
@@ -28,9 +29,19 @@ public class UIManager {
         MyLogger.logLineSep();
     }
 
-    public static void showGameIsStartedScreen(){
+    public static void showGameIsStartedScreen(PlayerType type, int money){
         MyLogger.logLineSep();
         MyLogger.logln("Gra się rozpoczęła");
+        MyLogger.logf("Twój stan konta: %d\n", money);
+        if(type == PlayerType.BigBlind){
+            MyLogger.logln("Zostałeś wybrany jako BigBlind");
+            MyLogger.logln("Poczekaj aż SmallBlind poda stawkę");
+        } else if(type == PlayerType.SmallBlind){
+            MyLogger.logln("Zostałeś wybrany jako SmallBlind");
+        } else {
+            MyLogger.logln("Zostałeś wybrany jako normalny gracz");
+            MyLogger.logln("Poczekaj aż SmallBlind poda stawkę");
+        }
         MyLogger.logLineSep();
     }
 }

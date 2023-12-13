@@ -8,7 +8,7 @@ import java.nio.channels.SelectionKey;
 
 @Data
 public class SessionData {
-    Room room = null;
-    SelectionKey key;
-    Player player;
+    private Room room = null;
+    private SelectionKey key;
+    private Player player;
 }
