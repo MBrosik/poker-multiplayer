@@ -2,6 +2,7 @@ package poker.server.game;
 
 import lombok.Getter;
 import poker.commons.JSONManager;
+import poker.commons.MyLogger;
 import poker.commons.game.elements.Deck;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
@@ -46,10 +47,6 @@ public class Room {
         gameId = System.currentTimeMillis() * 1000 + randomInRange;
     }
 
-    public void smallBroadCast(){
-
-    }
-
     // region Before Start
     public void addPlayer(SessionData sessionData) {
         var player = new Player(sessionData);
@@ -73,10 +70,12 @@ public class Room {
 
     // region Start Game
 
-    public void startGame() throws IOException {
-        roomState = RoomState.WaitingForBetFromSmallBlind;
-        choseBlinds();
-        notifyAboutBlinds(ActionType.SmallBlindBetTurn);
+    public void gameLoop() throws IOException {
+        if(roomState == RoomState.PlayerGathering) {
+            roomState = RoomState.WaitingForBetFromSmallBlind;
+            choseBlinds();
+            sendInfoToPlayers(ActionType.SmallBlindBetTurn);
+        }
     }
 
     public void choseBlinds() {
@@ -87,12 +86,12 @@ public class Room {
         }
     }
 
-    public void notifyAboutBlinds(ActionType action) throws IOException {
+    public void sendInfoToPlayers(ActionType action) throws IOException {
         for (Player player : players) {
             PlayerType playerType = getPlayerBetType(player);
             boolean myBet = isMyBet(action, player);
 
-            var gameData = new GameData(player.getMoney(), currentBet, playerType, myBet);
+            var gameData = new GameData(player.getMoney(), currentBet, playerType, myBet, player.cardsInHand);
 
             ReceiveData data = new ReceiveData(action, gameData);
             SocketManager.sendToClient(player.sessionData.getKey(), data);
@@ -129,11 +128,13 @@ public class Room {
 
     public void getBet(Player player, ReceiveData receiveData) throws IOException {
         if (roomState == RoomState.WaitingForBetFromBigBlind) {
-
+            MyLogger.logln("Big blind bet");
         } else if (roomState == RoomState.WaitingForBetFromSmallBlind) {
             smallBlindBet(player, receiveData);
         } else if (roomState == RoomState.WaitingForBetFromNormal) {
-
+            MyLogger.logln("Normal bet");
+        } else{
+            MyLogger.logln("Bad case");
         }
     }
 
@@ -141,18 +142,21 @@ public class Room {
         int index = players.indexOf(player);
         int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
 
-        System.out.println("00000");
+
         if (index != smallBlindInd) return;
         if (playerBet <= 0) return;
         if (playerBet > player.getMoney()) return;
-        System.out.println("11111");
         currentBet = playerBet;
+        player.setBet(playerBet);
 
         if (bigBlindInd != -1) {
             roomState = RoomState.WaitingForBetFromBigBlind;
-//            ReceiveData sendData = new ReceiveData(ActionType.BigBLindBetTurn, null);
-            notifyAboutBlinds(ActionType.BigBlindBetTurn);
+            sendInfoToPlayers(ActionType.BigBlindBetTurn);
         } else {
+            roomState = RoomState.WaitingForBetFromNormal;
+            normalBetInd = smallBlindInd == players.size() - 1 ? 0 : smallBlindInd + 1;
+            dealTheCards();
+            sendInfoToPlayers(ActionType.NormalBetTurn);
 
         }
     }
@@ -164,5 +168,18 @@ public class Room {
             }
         }
     }
+
+
+//    public void sendInfoAboutCards() throws IOException {
+//        for (Player player : players) {
+//            PlayerType playerType = getPlayerBetType(player);
+//            boolean myBet = isMyBet(ActionType.Bet, player);
+//
+//            var gameData = new GameData(player.getMoney(), currentBet, playerType, myBet, player.cardsInHand);
+//            var receiveData = new ReceiveData(ActionType.Bet, gameData);
+//
+//            SocketManager.sendToClient(player.sessionData.getKey(), receiveData);
+//        }
+//    }
     // endregion
 }

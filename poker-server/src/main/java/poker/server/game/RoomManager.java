@@ -3,7 +3,6 @@ package poker.server.game;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
 import poker.commons.socket.dataTypes.joinRoom.JoinRoomStatus;
-import poker.commons.socket.dataTypes.whileGame.PlayerType;
 import poker.server.socket.SessionData;
 import poker.server.socket.SocketManager;
 
@@ -56,7 +55,7 @@ public class RoomManager {
     }
 
     public static void startGame(Room room) throws IOException {
-        room.startGame();
+        room.gameLoop();
     }
 
 }

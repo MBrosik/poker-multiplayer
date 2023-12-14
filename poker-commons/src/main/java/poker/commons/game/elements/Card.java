@@ -8,4 +8,8 @@ import lombok.Data;
 public class Card {
     private Rank rank;
     private Suit suit;
+
+    public String toString() {
+        return suit.toString() + " - " + rank.toString();
+    }
 }

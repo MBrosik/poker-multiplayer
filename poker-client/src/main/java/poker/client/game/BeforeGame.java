@@ -69,5 +69,7 @@ public class BeforeGame {
         if(receivedData.getAction() == ActionType.SmallBlindBetTurn){
             WhileGame.start(receivedData);
         }
+
+//        gameLoop(true);
     }
 }

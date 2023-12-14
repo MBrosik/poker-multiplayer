@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Player {
     public static final int startMoney = 200;
     SessionData sessionData;
-    public ArrayList<Card> cardsInHand;
+    public ArrayList<Card> cardsInHand = new ArrayList<>();
 
     @Getter
     @Setter
@@ -20,6 +20,10 @@ public class Player {
     @Getter
     @Setter
     private int money = startMoney;
+
+    @Getter
+    @Setter
+    private int bet = 0;
 
     public Player(SessionData sessionData){
         this.sessionData = sessionData;

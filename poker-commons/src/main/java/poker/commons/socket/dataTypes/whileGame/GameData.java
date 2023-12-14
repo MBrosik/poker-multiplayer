@@ -13,4 +13,5 @@ public class GameData {
     private int currentBet;
     private PlayerType playerType;
     private boolean myBet;
+    private ArrayList<Card> cards;
 }
