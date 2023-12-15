@@ -19,24 +19,31 @@ public class WhileGame {
         UIManager.showSmallBlindTurnScreen(data.getPlayerType(), data.getMoney());
 
         if (data.getPlayerType() == PlayerType.SmallBlind) {
-            myBetAsSmallBlind();
+            myBetAsSmallBlind(data);
         } else {
             waitingForSmallBlindBet();
         }
     }
 
-    public static void myBetAsSmallBlind() throws IOException {
-        var response = myBet();
-
-        afterSmallBlindTurn(response);
-    }
-
-    private static ReceiveData myBet() {
+    private static ReceiveData myBet(GameData gameData) {
         MyLogger.logLineSep();
-        int bet = MyScanner.getStreamInt("Podaj stawkę:");
+        int bet;
+        while(true){
+            bet = MyScanner.getStreamInt("Podaj stawkę:");
+            if(bet >= gameData.getCurrentBet() && bet <= gameData.getMoney()){
+                break;
+            }
+            MyLogger.logln("Niewłaściwa stawka");
+        }
 
         var data = new ReceiveData(ActionType.Bet, bet);
         return SocketClientManager.i.send(data, true);
+    }
+
+    public static void myBetAsSmallBlind(GameData data) throws IOException {
+        var response = myBet(data);
+
+        afterSmallBlindTurn(response);
     }
 
     public static void waitingForSmallBlindBet() throws IOException {
@@ -44,7 +51,7 @@ public class WhileGame {
 
         var data1 = JSONManager.reparseJson(response.getData(), GameData.class);
 
-        System.out.printf("Small Blind rzucił: %d", data1.getCurrentBet());
+        System.out.printf("Small Blind rzucił: %d\n", data1.getCurrentBet());
         afterSmallBlindTurn(response);
     }
 
@@ -53,7 +60,7 @@ public class WhileGame {
             bigBlindTurn(receiveData);
         }
         else if(receiveData.getAction() == ActionType.NormalBetTurn){
-            normalBets(receiveData);
+            normalBets(receiveData, true);
         }
     }
 
@@ -61,22 +68,22 @@ public class WhileGame {
         var data = JSONManager.reparseJson(receiveData.getData(), GameData.class);
     }
 
-    public static void normalBets(ReceiveData receiveData) throws IOException {
+    public static void normalBets(ReceiveData receiveData, boolean showCards) throws IOException {
         var data = JSONManager.reparseJson(receiveData.getData(), GameData.class);
-        UIManager.showNormalBetTurn(data.isMyBet(), data.getMoney(), data.getCards());
+        UIManager.showNormalBetTurn(data.isMyBet(), data.getMoney(), data.getCards(), showCards);
+        GameData gameData = JSONManager.reparseJson(receiveData.getData(), GameData.class);
 
         if(data.isMyBet()){
-            myBet();
-        }
-        else{
+            myBetInNormalBets(gameData);
+        } else{
             waitingForAnotherNormalBet();
         }
     }
 
-    public static void myBetInNormalBets(){
-        var response = myBet();
+    public static void myBetInNormalBets(GameData gameData) throws IOException {
+        var response = myBet(gameData);
 
-        // afterSmallBlindTurn(response);
+         afterNormalBet(response);
     }
 
     public static void waitingForAnotherNormalBet() throws IOException {
@@ -84,7 +91,16 @@ public class WhileGame {
 
         var data1 = JSONManager.reparseJson(response.getData(), GameData.class);
 
-        System.out.printf("Inny gracz rzucił: %d", data1.getCurrentBet());
-        afterSmallBlindTurn(response);
+        System.out.printf("Inny gracz rzucił: %d\n", data1.getCurrentBet());
+        afterNormalBet(response);
+    }
+
+    public static void afterNormalBet(ReceiveData data) throws IOException {
+        if(data.getAction() == ActionType.NormalBetTurn){
+            normalBets(data, false);
+        }
+        else{
+            // next round flop actually
+        }
     }
 }
