@@ -38,7 +38,7 @@ public class Room {
     public int smallBlindInd = -1;
     public int bigBlindInd = -1;
     public int normalBetInd = -1;
-    public int lastRaiseInd = -1;
+    public int countAfterLastRaise = 0;
     public int currentBet = 0;
 
     public ArrayList<Card> cardsOnTable = new ArrayList<>();
@@ -168,10 +168,13 @@ public class Room {
 
 
         if (index != specificIndex) return true;
+        if(playerBet == 0 || playerBet == currentBet) {
+            countAfterLastRaise++;
+        }
         if (playerBet < currentBet) return true;
         if (playerBet > player.getMoney()) return true;
         if(currentBet < playerBet) {
-            lastRaiseInd = index;
+            countAfterLastRaise = 0;
         }
         currentBet = playerBet;
         player.setBet(playerBet);
@@ -180,6 +183,10 @@ public class Room {
 
     private void setNextBetInd() {
         normalBetInd = normalBetInd == players.size() - 1 ? 0 : normalBetInd + 1;
+
+        if(players.get(normalBetInd).isPassed()){
+            setNextBetInd();
+        }
     }
 
     public void dealTheCards() {
@@ -191,13 +198,18 @@ public class Room {
     }
 
     public void normalBet(Player player, ReceiveData data) throws IOException {
-        if (checkBettingConditions(player, data, normalBetInd)) {
+        int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
+        if (checkBettingConditions(player, data, normalBetInd) && playerBet != 0) {
             MyLogger.logln("Bad bet conditions [normal]");
             return;
         }
 
+        if(playerBet == 0){
+            player.setPassed(true);
+        }
+
         setNextBetInd();
-        if(lastRaiseInd == normalBetInd){
+        if(countAfterLastRaise == normalBetInd){
             addCardsOnTable();
         }
         sendInfoToPlayers(ActionType.NormalBetTurn);

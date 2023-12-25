@@ -25,6 +25,10 @@ public class Player {
     @Setter
     private int bet = 0;
 
+    @Getter
+    @Setter
+    private boolean passed = false;
+
     public Player(SessionData sessionData){
         this.sessionData = sessionData;
     }

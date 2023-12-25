@@ -25,7 +25,7 @@ public class WhileGame {
         }
     }
 
-    private static ReceiveData myBet(GameData gameData) {
+    private static ReceiveData myBet(GameData gameData, boolean addCheckPassStatus) {
         MyLogger.logLineSep();
         int bet;
         while(true){
@@ -36,12 +36,23 @@ public class WhileGame {
             MyLogger.logln("Niewłaściwa stawka");
         }
 
+        if(addCheckPassStatus && bet == gameData.getCurrentBet()){
+            MyLogger.logLineSep();
+            MyLogger.logln("Check");
+            MyLogger.logLineSep();
+        }
+        else if(addCheckPassStatus && bet == 0){
+            MyLogger.logLineSep();
+            MyLogger.logln("Pass");
+            MyLogger.logLineSep();
+        }
+
         var data = new ReceiveData(ActionType.Bet, bet);
         return SocketClientManager.i.send(data, true);
     }
 
     public static void myBetAsSmallBlind(GameData data) throws IOException {
-        var response = myBet(data);
+        var response = myBet(data, false);
 
         afterSmallBlindTurn(response);
     }
@@ -81,7 +92,7 @@ public class WhileGame {
     }
 
     public static void myBetInNormalBets(GameData gameData) throws IOException {
-        var response = myBet(gameData);
+        var response = myBet(gameData, true);
 
          afterNormalBet(response);
     }
