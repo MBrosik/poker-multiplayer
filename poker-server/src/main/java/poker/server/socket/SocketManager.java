@@ -7,6 +7,7 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
 import poker.commons.JSONManager;
+import poker.commons.MyLogger;
 import poker.commons.socket.ReceiveData;
 import poker.server.game.RoomManager;
 
@@ -33,11 +34,14 @@ public class SocketManager {
             case CreateRoom -> RoomManager.createRoom(key, session);
             case JoinRoom -> RoomManager.joinRoom(key, session, (double) receiveData.getData());
             case ReadyToPlay -> RoomManager.tagPlayerAsReady(session);
-            case Bet -> session.getRoom().getBet(session.getPlayer(), receiveData);
+            case Bet -> session.getRoom().receiveBetFromPlayer(session.getPlayer(), receiveData);
+            // case Check -> session.getRoom().receiveCheckFromPlayer(session.getPlayer(), receiveData);
+            case Pass -> session.getRoom().receivePassFromPlayer(session.getPlayer(), receiveData);
         }
     }
     public static void sendToClient(SelectionKey key, ReceiveData data) throws IOException {
         SocketChannel client = (SocketChannel) key.channel();
+
         client.write(JSONManager.jsonStringify(data));
     }
 }

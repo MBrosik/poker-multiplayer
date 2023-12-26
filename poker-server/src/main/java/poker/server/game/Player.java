@@ -1,5 +1,6 @@
 package poker.server.game;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import poker.commons.game.elements.Card;
@@ -8,26 +9,19 @@ import poker.server.socket.SessionData;
 import java.util.ArrayList;
 
 
+@Data
 public class Player {
     public static final int startMoney = 200;
-    SessionData sessionData;
-    public ArrayList<Card> cardsInHand = new ArrayList<>();
+    private SessionData sessionData;
+    private  ArrayList<Card> cardsInHand = new ArrayList<>();
 
-    @Getter
-    @Setter
     private boolean readyToPlay = false;
-
-    @Getter
-    @Setter
     private int money = startMoney;
-
-    @Getter
-    @Setter
     private int bet = 0;
 
-    @Getter
-    @Setter
     private boolean passed = false;
+
+//    String name;
 
     public Player(SessionData sessionData){
         this.sessionData = sessionData;

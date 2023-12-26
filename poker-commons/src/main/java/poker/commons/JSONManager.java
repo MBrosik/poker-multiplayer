@@ -20,7 +20,7 @@ public class JSONManager {
 
     public static ByteBuffer jsonStringify(ReceiveData receiveData){
         Gson gson = new Gson();
-        String message = gson.toJson(receiveData);
+        String message = gson.toJson(receiveData)+"\n";
 
         return ByteBuffer.wrap(message.getBytes());
     }

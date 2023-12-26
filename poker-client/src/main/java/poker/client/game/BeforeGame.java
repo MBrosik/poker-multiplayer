@@ -66,7 +66,7 @@ public class BeforeGame {
 
         var receivedData = SocketClientManager.i.getDataFromServer();
 
-        if(receivedData.getAction() == ActionType.SmallBlindBetTurn){
+        if(receivedData.getAction() == ActionType.StartGameInfo){
             WhileGame.start(receivedData);
         }
 

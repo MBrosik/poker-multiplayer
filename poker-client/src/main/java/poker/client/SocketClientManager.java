@@ -2,12 +2,15 @@ package poker.client;
 
 import poker.commons.Constants;
 import poker.commons.JSONManager;
+import poker.commons.MyLogger;
 import poker.commons.socket.ReceiveData;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class SocketClientManager {
     public SocketChannel socketChannel;
@@ -49,6 +52,11 @@ public class SocketClientManager {
         socketChannel.read(buffer);
 
         String response = new String(buffer.array()).trim();
+
+//        MyLogger.logLineSep();
+//        MyLogger.logln("getDataFromServer");
+//        MyLogger.logln(response);
+//        MyLogger.logLineSep();
 
         return JSONManager.jsonParse(response);
     }

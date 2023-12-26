@@ -4,8 +4,9 @@ public enum ActionType {
     CreateRoom,
     JoinRoom,
     ReadyToPlay,
-    SmallBlindBetTurn,
-    BigBlindBetTurn,
-    NormalBetTurn,
+
+    StartGameInfo,
     Bet,
+    Check,
+    Pass,
 }

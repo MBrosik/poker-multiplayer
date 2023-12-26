@@ -33,7 +33,7 @@ public class RoomManager {
         var room = rooms.get((long) id);
         ReceiveData sendData;
 
-        if (room == null) {
+        if (room == null || room.roomState != Room.RoomState.PlayerGathering) {
             sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.notExists);
         } else if (room.isFull()) {
             sendData = new ReceiveData(ActionType.JoinRoom, JoinRoomStatus.roomIsFull);

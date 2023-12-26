@@ -7,7 +7,8 @@ import poker.commons.game.elements.Card;
 import poker.commons.game.elements.Deck;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
-import poker.commons.socket.dataTypes.whileGame.GameData;
+import poker.commons.socket.dataTypes.whileGame.BetInfo;
+import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
 import poker.commons.socket.dataTypes.whileGame.PlayerType;
 import poker.server.socket.SessionData;
 import poker.server.socket.SocketManager;
@@ -19,12 +20,11 @@ import java.util.ArrayList;
 public class Room {
     public enum RoomState {
         PlayerGathering,
-        WaitingForBetFromBigBlind,
-        WaitingForBetFromSmallBlind,
-        WaitingForBetFromNormal,
+        Betting,
         EndGame
     }
 
+    public static final int minimumBet = 5;
     public static final int minSize = 2;
     public static final int maxSize = 4;
 
@@ -37,7 +37,7 @@ public class Room {
 
     public int smallBlindInd = -1;
     public int bigBlindInd = -1;
-    public int normalBetInd = -1;
+    public int currentBetInd = -1;
     public int countAfterLastRaise = 0;
     public int currentBet = 0;
 
@@ -75,121 +75,75 @@ public class Room {
     // region Start Game
 
     public void gameLoop() throws IOException {
-        if(roomState == RoomState.PlayerGathering) {
-            roomState = RoomState.WaitingForBetFromSmallBlind;
+        if (roomState == RoomState.PlayerGathering) {
+            roomState = RoomState.Betting;
+
             choseBlinds();
-            normalBetInd = smallBlindInd;
-            sendInfoToPlayers(ActionType.SmallBlindBetTurn);
+            currentBet = minimumBet * 2;
+            dealTheCards();
+            sendInfoAboutBlinds();
+
+            choseNextBetInd();
+            sendInfoAboutBet();
+        } else if (roomState == RoomState.Betting) {
+            choseNextBetInd();
+            sendInfoAboutBet();
         }
     }
 
-    public void choseBlinds() {
+    private void choseBlinds() {
         int index = (int) (Math.random() * players.size());
         smallBlindInd = index;
-        if (players.size() > 2) {
-            bigBlindInd = index == players.size() - 1 ? 0 : index + 1;
-        }
+        bigBlindInd = index == players.size() - 1 ? 0 : index + 1;
     }
 
-    public void sendInfoToPlayers(ActionType action) throws IOException {
-        for (Player player : players) {
-            PlayerType playerType = getPlayerBetType(player);
-            boolean myBet = isMyBet(action, player);
-
-            var gameData = new GameData(player.getMoney(), currentBet, playerType, myBet, player.cardsInHand);
-
-            ReceiveData data = new ReceiveData(action, gameData);
-            SocketManager.sendToClient(player.sessionData.getKey(), data);
-        }
-    }
-    private boolean isMyBet(ActionType action, Player player){
-        int playerIndex = players.indexOf(player);
-
-        if(action == ActionType.SmallBlindBetTurn){
-            return playerIndex == smallBlindInd;
-        }
-        else if(action == ActionType.BigBlindBetTurn){
-            return playerIndex == smallBlindInd;
-        }
-        else if(action == ActionType.NormalBetTurn){
-            return playerIndex == normalBetInd;
-        }
-        return false;
-    }
-
-    private PlayerType getPlayerBetType(Player player) {
-        PlayerType playerType;
-        int playerIndex = players.indexOf(player);
-
-        if (playerIndex == smallBlindInd) {
-            playerType = PlayerType.SmallBlind;
-        } else if (playerIndex == bigBlindInd) {
-            playerType = PlayerType.BigBlind;
+    private void choseNextBetInd() {
+        if (currentBetInd == -1) {
+            currentBetInd = bigBlindInd == players.size() - 1 ? 0 : bigBlindInd + 1;
         } else {
-            playerType = PlayerType.NormalPlayer;
-        }
-        return playerType;
-    }
+            while (true) {
+                currentBetInd = currentBetInd == players.size() - 1 ? 0 : currentBetInd + 1;
+                var player = players.get(currentBetInd);
 
-    public void getBet(Player player, ReceiveData receiveData) throws IOException {
-        MyLogger.logln(roomState.toString());
-        if (roomState == RoomState.WaitingForBetFromBigBlind) {
-            MyLogger.logln("Big blind bet");
-        } else if (roomState == RoomState.WaitingForBetFromSmallBlind) {
-            smallBlindBet(player, receiveData);
-        } else if (roomState == RoomState.WaitingForBetFromNormal) {
-            normalBet(player, receiveData);
-        } else{
-            MyLogger.logln("Bad case");
-        }
-    }
-
-    public void smallBlindBet(Player player, ReceiveData data) throws IOException {
-        if (checkBettingConditions(player, data, smallBlindInd)) {
-            MyLogger.logln("Bad bet conditions");
-            return;
-        };
-
-        if (bigBlindInd != -1) {
-            roomState = RoomState.WaitingForBetFromBigBlind;
-            sendInfoToPlayers(ActionType.BigBlindBetTurn);
-        } else {
-            roomState = RoomState.WaitingForBetFromNormal;
-            setNextBetInd();
-            dealTheCards();
-            sendInfoToPlayers(ActionType.NormalBetTurn);
+                if (!player.isPassed() && player.getBet() != player.getMoney()) {break;}
+            }
 
         }
     }
 
-    private boolean checkBettingConditions(Player player, ReceiveData data, int specificIndex) {
-        int index = players.indexOf(player);
-        int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
+    private void sendInfoAboutBlinds() throws IOException {
+        for (int i = 0; i < players.size(); i++) {
+            var player = players.get(i);
 
+            PlayerType playerType;
 
-        if (index != specificIndex) return true;
-        if(playerBet == 0 || playerBet == currentBet) {
-            countAfterLastRaise++;
-        }
-        if (playerBet < currentBet) return true;
-        if (playerBet > player.getMoney()) return true;
-        if(currentBet < playerBet) {
-            countAfterLastRaise = 0;
-        }
-        currentBet = playerBet;
-        player.setBet(playerBet);
-        return false;
-    }
+            if (i == smallBlindInd) {
+                playerType = PlayerType.SmallBlind;
+            } else if (i == bigBlindInd) {
+                playerType = PlayerType.BigBlind;
+            } else {
+                playerType = PlayerType.NormalPlayer;
+            }
 
-    private void setNextBetInd() {
-        normalBetInd = normalBetInd == players.size() - 1 ? 0 : normalBetInd + 1;
-
-        if(players.get(normalBetInd).isPassed()){
-            setNextBetInd();
+            var startGameDataInfo = new StartGameDataInfo(playerType, minimumBet, minimumBet * 2, player.getMoney(), player.getCardsInHand());
+            ReceiveData data = new ReceiveData(ActionType.StartGameInfo, startGameDataInfo);
+            SocketManager.sendToClient(player.getSessionData().getKey(), data);
         }
     }
 
-    public void dealTheCards() {
+    private void sendInfoAboutBet() throws IOException {
+        for (int i = 0; i < players.size(); i++) {
+            var player = players.get(i);
+            boolean myBet = i == currentBetInd;
+
+            var betInfo = new BetInfo(player.getMoney(), currentBet, myBet);
+
+            ReceiveData data = new ReceiveData(ActionType.Bet, betInfo);
+            SocketManager.sendToClient(player.getSessionData().getKey(), data);
+        }
+    }
+
+    private void dealTheCards() {
         for (Player player : players) {
             for (int i = 0; i < 2; i++) {
                 player.addCard(deck.getRandomCard());
@@ -197,36 +151,168 @@ public class Room {
         }
     }
 
-    public void normalBet(Player player, ReceiveData data) throws IOException {
-        int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
-        if (checkBettingConditions(player, data, normalBetInd) && playerBet != 0) {
-            MyLogger.logln("Bad bet conditions [normal]");
+    public void receiveBetFromPlayer(Player player, ReceiveData receiveData) throws IOException {
+        if (roomState != RoomState.Betting) return;
+        if (players.indexOf(player) != currentBetInd) return;
+
+        int bet = JSONManager.reparseJson(receiveData.getData(), Integer.class);
+        if (currentBet <= bet && bet <= player.getMoney()) {
+            if (bet > currentBet) countAfterLastRaise++;
+            else countAfterLastRaise = 0;
+
+            currentBet = bet;
+            player.setBet(bet);
+        } else if (bet == player.getMoney()) {
+            player.setBet(bet);
+        } else {
             return;
         }
-
-        if(playerBet == 0){
-            player.setPassed(true);
-        }
-
-        setNextBetInd();
-        if(countAfterLastRaise == normalBetInd){
-            addCardsOnTable();
-        }
-        sendInfoToPlayers(ActionType.NormalBetTurn);
+        gameLoop();
     }
 
-    public void addCardsOnTable(){
-        if(cardsOnTable.size() == 0){
+    public void receivePassFromPlayer(Player player, ReceiveData receiveData) throws IOException {
+        if (roomState != RoomState.Betting) return;
+        if (players.indexOf(player) != currentBetInd) return;
 
-        } else if(cardsOnTable.size() == 3){
+        MyLogger.logln("passedddddddddd");
+        player.setPassed(true);
 
-        } else if(cardsOnTable.size() == 4){
-
-        } else if(cardsOnTable.size() == 5){
-
-        }
-
+        gameLoop();
     }
 
-    // endregion
+//    public void receiveCheckFromPlayer(Player player, ReceiveData receiveData){
+//        if(roomState != RoomState.Betting) return;
+//    }
+
+//    public void sendInfoToPlayers(ActionType action) throws IOException {
+//        for (Player player : players) {
+//            PlayerType playerType = getPlayerBetType(player);
+//            boolean myBet = isMyBet(action, player);
+//
+//            var gameData = new GameData(player.getMoney(), currentBet, playerType, myBet, player.cardsInHand);
+//
+//            ReceiveData data = new ReceiveData(action, gameData);
+//            SocketManager.sendToClient(player.sessionData.getKey(), data);
+//        }
+//    }
+//    private boolean isMyBet(ActionType action, Player player){
+//        int playerIndex = players.indexOf(player);
+//
+//        if(action == ActionType.SmallBlindBetTurn){
+//            return playerIndex == smallBlindInd;
+//        }
+//        else if(action == ActionType.BigBlindBetTurn){
+//            return playerIndex == smallBlindInd;
+//        }
+//        else if(action == ActionType.NormalBetTurn){
+//            return playerIndex == normalBetInd;
+//        }
+//        return false;
+//    }
+//
+//    private PlayerType getPlayerBetType(Player player) {
+//        PlayerType playerType;
+//        int playerIndex = players.indexOf(player);
+//
+//        if (playerIndex == smallBlindInd) {
+//            playerType = PlayerType.SmallBlind;
+//        } else if (playerIndex == bigBlindInd) {
+//            playerType = PlayerType.BigBlind;
+//        } else {
+//            playerType = PlayerType.NormalPlayer;
+//        }
+//        return playerType;
+//    }
+//
+//    public void getBet(Player player, ReceiveData receiveData) throws IOException {
+//        MyLogger.logln(roomState.toString());
+//        if (roomState == RoomState.WaitingForBetFromBigBlind) {
+//            MyLogger.logln("Big blind bet");
+//        } else if (roomState == RoomState.WaitingForBetFromSmallBlind) {
+//            smallBlindBet(player, receiveData);
+//        } else if (roomState == RoomState.WaitingForBetFromNormal) {
+//            normalBet(player, receiveData);
+//        } else{
+//            MyLogger.logln("Bad case");
+//        }
+//    }
+//
+//    public void smallBlindBet(Player player, ReceiveData data) throws IOException {
+//        if (checkBettingConditions(player, data, smallBlindInd)) {
+//            MyLogger.logln("Bad bet conditions");
+//            return;
+//        };
+//
+//        if (bigBlindInd != -1) {
+//            roomState = RoomState.WaitingForBetFromBigBlind;
+//            sendInfoToPlayers(ActionType.BigBlindBetTurn);
+//        } else {
+//            roomState = RoomState.WaitingForBetFromNormal;
+//            setNextBetInd();
+//            dealTheCards();
+//            sendInfoToPlayers(ActionType.NormalBetTurn);
+//
+//        }
+//    }
+//
+//    private boolean checkBettingConditions(Player player, ReceiveData data, int specificIndex) {
+//        int index = players.indexOf(player);
+//        int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
+//
+//
+//        if (index != specificIndex) return true;
+//        if(playerBet == 0 || playerBet == currentBet) {
+//            countAfterLastRaise++;
+//        }
+//        if (playerBet < currentBet) return true;
+//        if (playerBet > player.getMoney()) return true;
+//        if(currentBet < playerBet) {
+//            countAfterLastRaise = 0;
+//        }
+//        currentBet = playerBet;
+//        player.setBet(playerBet);
+//        return false;
+//    }
+//
+//    private void setNextBetInd() {
+//        normalBetInd = normalBetInd == players.size() - 1 ? 0 : normalBetInd + 1;
+//
+//        if(players.get(normalBetInd).isPassed()){
+//            setNextBetInd();
+//        }
+//    }
+//
+//
+//    public void normalBet(Player player, ReceiveData data) throws IOException {
+//        int playerBet = JSONManager.reparseJson(data.getData(), Integer.class);
+//        if (checkBettingConditions(player, data, normalBetInd) && playerBet != 0) {
+//            MyLogger.logln("Bad bet conditions [normal]");
+//            return;
+//        }
+//
+//        if(playerBet == 0){
+//            player.setPassed(true);
+//        }
+//
+//        setNextBetInd();
+//        if(countAfterLastRaise == normalBetInd){
+//            addCardsOnTable();
+//        }
+//        sendInfoToPlayers(ActionType.NormalBetTurn);
+//    }
+//
+//    public void addCardsOnTable(){
+//        if(cardsOnTable.size() == 0){
+//
+//        } else if(cardsOnTable.size() == 3){
+//
+//        } else if(cardsOnTable.size() == 4){
+//
+//        } else if(cardsOnTable.size() == 5){
+//
+//        }
+//
+//    }
+//
+//    // endregion
 }
