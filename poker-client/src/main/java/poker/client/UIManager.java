@@ -62,32 +62,6 @@ public class UIManager {
         MyLogger.logLineSep();
     }
 
-//    public static void showSmallBlindTurnScreen(PlayerType type, int money) {
-//        MyLogger.logLineSep();
-//        MyLogger.logf("Twój stan konta: %d\n", money);
-//        if (type == PlayerType.BigBlind) {
-//            MyLogger.logln("Zostałeś wybrany jako BigBlind");
-//            MyLogger.logln("Poczekaj aż SmallBlind poda stawkę");
-//        } else if (type == PlayerType.SmallBlind) {
-//            MyLogger.logln("Zostałeś wybrany jako SmallBlind");
-//        } else {
-//            MyLogger.logln("Zostałeś wybrany jako normalny gracz");
-//            MyLogger.logln("Poczekaj aż SmallBlind poda stawkę");
-//        }
-//        MyLogger.logLineSep();
-//    }
-
-//    public static void showBigBlindTurnScreen(PlayerType type, int money) {
-//        MyLogger.logLineSep();
-//        MyLogger.logf("Twój stan konta: %d\n", money);
-//        if (type == PlayerType.BigBlind) {
-//            MyLogger.logln("Teraz Twoja kolej Big Blind");
-//        } else {
-//            MyLogger.logln("Teraz kolej Big blinda.");
-//        }
-//        MyLogger.logLineSep();
-//    }
-
     public static void showBetTurn(BetInfo betInfo) {
         MyLogger.logLineSep();
         MyLogger.logf("Twój stan konta: %d\n", betInfo.getMoney());
