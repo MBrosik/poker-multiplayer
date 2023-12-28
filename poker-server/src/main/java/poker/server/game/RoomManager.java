@@ -55,7 +55,7 @@ public class RoomManager {
     }
 
     public static void startGame(Room room) throws IOException {
-        room.gameLoop();
+        room.startGame();
     }
 
 }

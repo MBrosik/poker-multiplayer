@@ -9,4 +9,6 @@ public enum ActionType {
     Bet,
     Check,
     Pass,
+
+    NextRound
 }

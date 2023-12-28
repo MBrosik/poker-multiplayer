@@ -1,8 +1,6 @@
 package poker.server.game;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import poker.commons.game.elements.Card;
 import poker.server.socket.SessionData;
 
@@ -29,5 +27,16 @@ public class Player {
 
     public void addCard(Card card){
         cardsInHand.add(card);
+    }
+
+    public boolean checkIfPossibleToBet(){
+        return bet == money;
+    }
+
+    public int giveBetMoney(){
+        int temp = bet;
+        money-=temp;
+        bet = 0;
+        return temp;
     }
 }

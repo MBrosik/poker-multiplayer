@@ -9,6 +9,7 @@ import poker.commons.MyScanner;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
 import poker.commons.socket.dataTypes.whileGame.BetInfo;
+import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
 import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
 
 import java.io.IOException;
@@ -28,15 +29,20 @@ public class WhileGame {
 
     public static void waitForBetInfo() throws IOException {
         var receiveData = SocketClientManager.i.getDataFromServer();
-        if (receiveData.getAction() != ActionType.Bet) return;
-        BetInfo data = JSONManager.reparseJson(receiveData.getData(), BetInfo.class);
-        UIManager.showBetTurn(data);
+        if (receiveData.getAction() == ActionType.Bet) {
+            BetInfo data = JSONManager.reparseJson(receiveData.getData(), BetInfo.class);
+            UIManager.showBetTurn(data);
 
-        if (data.isMyBet()) {
-            placeBet(data);
+            if (data.isMyBet()) {
+                placeBet(data);
 
-            waitForBetInfo();
-        } else {
+                waitForBetInfo();
+            } else {
+                waitForBetInfo();
+            }
+        } else if(receiveData.getAction() == ActionType.NextRound){
+            NextRoundInfo data = JSONManager.reparseJson(receiveData.getData(), NextRoundInfo.class);
+            UIManager.showNextRoundDealCards(data);
             waitForBetInfo();
         }
     }

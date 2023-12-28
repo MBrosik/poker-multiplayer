@@ -1,5 +1,6 @@
 package poker.server.game;
 
+import jdk.jshell.spi.ExecutionControl;
 import lombok.Getter;
 import poker.commons.JSONManager;
 import poker.commons.MyLogger;
@@ -8,6 +9,7 @@ import poker.commons.game.elements.Deck;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
 import poker.commons.socket.dataTypes.whileGame.BetInfo;
+import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
 import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
 import poker.commons.socket.dataTypes.whileGame.PlayerType;
 import poker.server.socket.SessionData;
@@ -39,6 +41,8 @@ public class Room {
     public int bigBlindInd = -1;
     public int currentBetInd = -1;
     public int countAfterLastRaise = 0;
+
+    public int moneyOnTable = 0;
     public int currentBet = 0;
 
     public ArrayList<Card> cardsOnTable = new ArrayList<>();
@@ -67,28 +71,76 @@ public class Room {
     }
 
     public boolean areAllPlayersReady() {
-        return players.stream().allMatch(Player::isReadyToPlay);
+        return players.stream().allMatch(Player::isReadyToPlay) && players.size() >= minSize;
     }
 
     // endregion
 
-    // region Start Game
 
-    public void gameLoop() throws IOException {
-        if (roomState == RoomState.PlayerGathering) {
-            roomState = RoomState.Betting;
+    public void startGame() throws IOException {
+        if (roomState != RoomState.PlayerGathering) return;
+        roomState = RoomState.Betting;
 
-            choseBlinds();
-            currentBet = minimumBet * 2;
-            dealTheCards();
-            sendInfoAboutBlinds();
+        choseBlinds();
+        currentBet = minimumBet * 2;
+        dealTheCards();
+        sendInfoAboutBlinds();
 
-            choseNextBetInd();
-            sendInfoAboutBet();
-        } else if (roomState == RoomState.Betting) {
+        choseNextBetInd();
+        sendInfoAboutBet();
+    }
+
+    public void nextBetting() throws IOException {
+        if (roomState != RoomState.Betting) return;
+
+        var playersInGame = players.stream().filter(player -> !player.isPassed() && !player.checkIfPossibleToBet()).toList();
+
+        MyLogger.logln(String.valueOf(countAfterLastRaise));
+
+        if(playersInGame.size() == 1){
+            MyLogger.elog("Do end Of Turn");
+        }
+        else if(countAfterLastRaise >= playersInGame.size()){
+            if(dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){
+                MyLogger.elog("Do end Of Turn");
+            }
+            else{
+                prepareForNextRoundOfBetting();
+            }
+        } else{
             choseNextBetInd();
             sendInfoAboutBet();
         }
+    }
+
+    public void prepareForNextRoundOfBetting() throws IOException {
+        for (Player player: players) {
+            moneyOnTable += player.giveBetMoney();
+        }
+
+        currentBetInd = smallBlindInd == 0 ? players.size() - 1 : smallBlindInd - 1;
+        choseNextBetInd();
+        currentBet = 0;
+        countAfterLastRaise = 0;
+
+        sendInfoAboutNextRound();
+        sendInfoAboutBet();
+    }
+
+    public boolean dealCardsOnTheTableAndCheckIfCountOfCardsIs5() {
+        if(cardsOnTable.size() == 0){
+            for (int i = 0; i < 3; i++) {
+                cardsOnTable.add(deck.getRandomCard());
+            }
+            return false;
+        } else if(cardsOnTable.size() == 5){
+            return true;
+        }
+        else if(cardsOnTable.size() >= 3){
+            cardsOnTable.add(deck.getRandomCard());
+            return false;
+        }
+        return false;
     }
 
     private void choseBlinds() {
@@ -135,9 +187,18 @@ public class Room {
             var player = players.get(i);
             boolean myBet = i == currentBetInd;
 
-            var betInfo = new BetInfo(player.getMoney(), currentBet, myBet);
+            var betInfo = new BetInfo(player.getMoney(), currentBet, myBet, player.isPassed(), player.checkIfPossibleToBet());
 
             ReceiveData data = new ReceiveData(ActionType.Bet, betInfo);
+            SocketManager.sendToClient(player.getSessionData().getKey(), data);
+        }
+    }
+
+    private void sendInfoAboutNextRound() throws IOException {
+        for (Player player : players) {
+            var nextRoundInfo = new NextRoundInfo(cardsOnTable);
+
+            ReceiveData data = new ReceiveData(ActionType.NextRound, nextRoundInfo);
             SocketManager.sendToClient(player.getSessionData().getKey(), data);
         }
     }
@@ -156,7 +217,7 @@ public class Room {
 
         int bet = JSONManager.reparseJson(receiveData.getData(), Integer.class);
         if (currentBet <= bet && bet <= player.getMoney()) {
-            if (bet > currentBet) countAfterLastRaise++;
+            if (bet == currentBet) countAfterLastRaise++;
             else countAfterLastRaise = 0;
 
             currentBet = bet;
@@ -166,16 +227,16 @@ public class Room {
         } else {
             return;
         }
-        gameLoop();
+        nextBetting();
     }
 
-    public void receivePassFromPlayer(Player player, ReceiveData receiveData) throws IOException {
+    public void receivePassFromPlayer(Player player, ReceiveData receiveData) throws IOException{
         if (roomState != RoomState.Betting) return;
         if (players.indexOf(player) != currentBetInd) return;
 
         MyLogger.logln("passedddddddddd");
         player.setPassed(true);
 
-        gameLoop();
+        nextBetting();
     }
 }

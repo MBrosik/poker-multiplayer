@@ -3,6 +3,7 @@ package poker.client;
 import poker.commons.MyLogger;
 import poker.commons.game.elements.Card;
 import poker.commons.socket.dataTypes.whileGame.BetInfo;
+import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
 import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
 import poker.commons.socket.dataTypes.whileGame.PlayerType;
 
@@ -52,7 +53,8 @@ public class UIManager {
         MyLogger.logf("BigBlind rzucił %d\n", startGameDataInfo.getBigBlindBet());
         MyLogger.logLineSep();
     }
-    public static void showYourCards(ArrayList<Card> cards){
+
+    public static void showYourCards(ArrayList<Card> cards) {
         MyLogger.logLineSep();
         MyLogger.logln("O to Twoje karty:");
 
@@ -71,6 +73,18 @@ public class UIManager {
             MyLogger.logln("Teraz Twoja kolej");
         } else {
             MyLogger.logln("Inny gracz teraz betuje");
+        }
+
+        MyLogger.logLineSep();
+    }
+
+    public static void showNextRoundDealCards(NextRoundInfo data) {
+        MyLogger.logLineSep();
+        MyLogger.logln("Rozpoczęła się następna runda");
+        MyLogger.logln("O to karty na stole:");
+
+        for (Card card : data.getCardsOnTheTable()) {
+            MyLogger.logln(card.toString());
         }
 
         MyLogger.logLineSep();
