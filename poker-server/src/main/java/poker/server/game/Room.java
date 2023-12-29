@@ -16,7 +16,8 @@ import poker.server.socket.SessionData;
 import poker.server.socket.SocketManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Room {
@@ -98,11 +99,11 @@ public class Room {
         MyLogger.logln(String.valueOf(countAfterLastRaise));
 
         if(playersInGame.size() == 1){
-            MyLogger.elog("Do end Of Turn");
+            endOfTurn();
         }
         else if(countAfterLastRaise >= playersInGame.size()){
             if(dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){
-                MyLogger.elog("Do end Of Turn");
+                endOfTurn();
             }
             else{
                 prepareForNextRoundOfBetting();
@@ -238,5 +239,27 @@ public class Room {
         player.setPassed(true);
 
         nextBetting();
+    }
+
+    public void endOfTurn(){
+        Map<Player, Long> pointMap = players.stream()
+                .collect(Collectors.toMap(
+                        el -> el,
+                        el -> CardCheckerManager.getPointsForCards(cardsOnTable, el.getCardsInHand())
+                ));
+
+        Long maxValue = pointMap.values().stream().max(Long::compareTo).orElseThrow(() -> {
+            MyLogger.elog("Something wrong with maxValue");
+            return new IllegalStateException("Something wrong with maxValue");
+        });;
+
+
+        List<Player> bestPlayers = pointMap.entrySet()
+                .stream()
+                .filter(el -> Objects.equals(el.getValue(), maxValue))
+                .map(Map.Entry::getKey)
+                .toList();
+
+
     }
 }

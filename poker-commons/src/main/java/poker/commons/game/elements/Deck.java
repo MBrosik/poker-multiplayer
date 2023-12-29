@@ -7,6 +7,7 @@ public class Deck {
 
     public Deck() {
         for (Rank rank : Rank.values()) {
+            if(rank == Rank.One) continue;
             for (Suit suit : Suit.values()) {
                 freeCards.add(new Card(rank, suit));
             }
