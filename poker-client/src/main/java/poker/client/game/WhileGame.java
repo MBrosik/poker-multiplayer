@@ -9,6 +9,7 @@ import poker.commons.MyScanner;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
 import poker.commons.socket.dataTypes.whileGame.BetInfo;
+import poker.commons.socket.dataTypes.whileGame.EndGameInfo;
 import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
 import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
 
@@ -45,6 +46,12 @@ public class WhileGame {
             UIManager.showNextRoundDealCards(data);
             waitForBetInfo();
         }
+        else if(receiveData.getAction() == ActionType.EndTurn){
+            EndGameInfo endGameInfo = JSONManager.reparseJson(receiveData.getData(), EndGameInfo.class);
+
+            UIManager.showEndTurnScreen(endGameInfo);
+//            MyLogger.logln(endGameInfo.isWin());
+        }
     }
 
     private static void placeBet(BetInfo data) {
@@ -54,7 +61,7 @@ public class WhileGame {
 
         while (true) {
             MyLogger.logln("Podaj stawkę, lub wpisz 'Pass', jeżeli chcesz spasować");
-            var tempBet = MyScanner.getStreamString("Podaj:");
+            var tempBet = MyScanner.getStreamString("Podaj: ");
             if (Objects.equals(tempBet, "Pass")) {
                 MyLogger.logln("Pass");
                 command = PlayerChoices.Pass;

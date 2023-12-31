@@ -1,22 +1,42 @@
 package poker.server.game;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import poker.commons.game.elements.Card;
 import poker.server.socket.SessionData;
 
 import java.util.ArrayList;
 
 
-@Data
+//@Data
 public class Player {
+    @Getter
+    @Setter
     public static final int startMoney = 200;
+
+    @Getter
+    @Setter
     private SessionData sessionData;
+
+    @Getter
+    @Setter
     private  ArrayList<Card> cardsInHand = new ArrayList<>();
 
+    @Getter
+    @Setter
     private boolean readyToPlay = false;
+
+    @Getter
+    @Setter
     private int money = startMoney;
+
+    @Getter
+    @Setter
     private int bet = 0;
 
+    @Getter
+    @Setter
     private boolean passed = false;
 
 //    String name;
@@ -39,4 +59,9 @@ public class Player {
         bet = 0;
         return temp;
     }
+
+//    @Override
+//    public int hashCode() {
+//        return this.hashCode();
+//    }
 }

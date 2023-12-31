@@ -8,10 +8,7 @@ import poker.commons.game.elements.Card;
 import poker.commons.game.elements.Deck;
 import poker.commons.socket.ReceiveData;
 import poker.commons.socket.dataTypes.ActionType;
-import poker.commons.socket.dataTypes.whileGame.BetInfo;
-import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
-import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
-import poker.commons.socket.dataTypes.whileGame.PlayerType;
+import poker.commons.socket.dataTypes.whileGame.*;
 import poker.server.socket.SessionData;
 import poker.server.socket.SocketManager;
 
@@ -99,10 +96,12 @@ public class Room {
         MyLogger.logln(String.valueOf(countAfterLastRaise));
 
         if(playersInGame.size() == 1){
+            while(!dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){}
+            zeroValues();
             endOfTurn();
-        }
-        else if(countAfterLastRaise >= playersInGame.size()){
+        } else if(countAfterLastRaise >= playersInGame.size()){
             if(dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){
+                zeroValues();
                 endOfTurn();
             }
             else{
@@ -115,17 +114,29 @@ public class Room {
     }
 
     public void prepareForNextRoundOfBetting() throws IOException {
+//        for (Player player: players) {
+//            moneyOnTable += player.giveBetMoney();
+//        }
+
+        currentBetInd = smallBlindInd == 0 ? players.size() - 1 : smallBlindInd - 1;
+//        choseNextBetInd();
+//        currentBet = 0;
+//        countAfterLastRaise = 0;
+
+        zeroValues();
+
+        sendInfoAboutNextRound();
+        sendInfoAboutBet();
+    }
+
+    public void zeroValues(){
         for (Player player: players) {
             moneyOnTable += player.giveBetMoney();
         }
 
-        currentBetInd = smallBlindInd == 0 ? players.size() - 1 : smallBlindInd - 1;
         choseNextBetInd();
         currentBet = 0;
         countAfterLastRaise = 0;
-
-        sendInfoAboutNextRound();
-        sendInfoAboutBet();
     }
 
     public boolean dealCardsOnTheTableAndCheckIfCountOfCardsIs5() {
@@ -241,14 +252,21 @@ public class Room {
         nextBetting();
     }
 
-    public void endOfTurn(){
-        Map<Player, Long> pointMap = players.stream()
-                .collect(Collectors.toMap(
-                        el -> el,
-                        el -> CardCheckerManager.getPointsForCards(cardsOnTable, el.getCardsInHand())
-                ));
+    public void endOfTurn() throws IOException {
+        LinkedHashMap<Player, CardCheckerManager> pointMap = new LinkedHashMap<>();
 
-        Long maxValue = pointMap.values().stream().max(Long::compareTo).orElseThrow(() -> {
+        for (Player player: players) {
+            pointMap.put(player, new CardCheckerManager(cardsOnTable, player.getCardsInHand()));
+        }
+
+
+        MyLogger.logln("Noice EndOfTurn");
+        for (var xD: pointMap.entrySet()){
+            MyLogger.logln(JSONManager.jsonStringify1(xD.getKey().getCardsInHand()));
+            MyLogger.logln(String.valueOf(xD.getValue()));
+        }
+
+        CardCheckerManager maxValue = pointMap.values().stream().max(Comparator.comparingLong(el -> el.points)).orElseThrow(() -> {
             MyLogger.elog("Something wrong with maxValue");
             return new IllegalStateException("Something wrong with maxValue");
         });;
@@ -256,10 +274,31 @@ public class Room {
 
         List<Player> bestPlayers = pointMap.entrySet()
                 .stream()
-                .filter(el -> Objects.equals(el.getValue(), maxValue))
+                .filter(el -> Objects.equals(el.getValue().points, maxValue.points))
                 .map(Map.Entry::getKey)
                 .toList();
 
+        for (var player: bestPlayers) {
+            player.setMoney(player.getMoney() + moneyOnTable / bestPlayers.size());
+        }
 
+        for (var entry: pointMap.entrySet()) {
+            var player = entry.getKey();
+            var value = entry.getValue();
+            boolean won = bestPlayers.contains(entry.getKey());
+
+            EndGameInfo endGameInfo = new EndGameInfo(
+                    cardsOnTable,
+                    player.getCardsInHand(),
+                    won,
+                    bestPlayers.size(),
+                    value.variation,
+                    won ? moneyOnTable / bestPlayers.size():0,
+                    player.getMoney()
+            );
+
+            ReceiveData receiveData = new ReceiveData(ActionType.EndTurn, endGameInfo);
+            SocketManager.sendToClient(player.getSessionData().getKey(), receiveData);
+        }
     }
 }

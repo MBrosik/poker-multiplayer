@@ -10,5 +10,6 @@ public enum ActionType {
     Check,
     Pass,
 
-    NextRound
+    NextRound,
+    EndTurn,
 }

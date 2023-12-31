@@ -2,10 +2,7 @@ package poker.client;
 
 import poker.commons.MyLogger;
 import poker.commons.game.elements.Card;
-import poker.commons.socket.dataTypes.whileGame.BetInfo;
-import poker.commons.socket.dataTypes.whileGame.NextRoundInfo;
-import poker.commons.socket.dataTypes.whileGame.StartGameDataInfo;
-import poker.commons.socket.dataTypes.whileGame.PlayerType;
+import poker.commons.socket.dataTypes.whileGame.*;
 
 import java.util.ArrayList;
 
@@ -88,5 +85,28 @@ public class UIManager {
         }
 
         MyLogger.logLineSep();
+    }
+
+    public static void showEndTurnScreen(EndGameInfo endGameInfo) {
+        MyLogger.logLineSep();
+        MyLogger.logln("Koniec rundy");
+        MyLogger.logln("Karty na stole:");
+        for (Card card : endGameInfo.getCardsOnTable()) {
+            MyLogger.logln("\t" + card.toString());
+        }
+        MyLogger.logln("Twoje karty:");
+        for (Card card : endGameInfo.getCardsInHand()) {
+            MyLogger.logln("\t" + card.toString());
+        }
+        MyLogger.logln("Twój układ: " + endGameInfo.getVariation());
+        if(endGameInfo.isWin()){
+            MyLogger.logln("Wygrałeś!");
+            MyLogger.logf("Zebrałeś: %d \n", endGameInfo.getHowMuchIWon());
+        } else{
+            MyLogger.logln("Niestety przegrałeś");
+        }
+
+        MyLogger.logf("Twój stan konta: %d \n", endGameInfo.getMyMoney());
+
     }
 }

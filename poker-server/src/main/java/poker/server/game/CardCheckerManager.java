@@ -9,42 +9,85 @@ import java.util.stream.Collectors;
 
 public class CardCheckerManager {
     public final static long multiplier = 100_00_00_00_00L;
-//    public final static long multiplier = 10000000000L;
 
-    public static long getPointsForCards(ArrayList<Card> cardsOnTable, ArrayList<Card> playerCards) {
+    public long points;
+    public String variation;
+
+    public CardCheckerManager(ArrayList<Card> cardsOnTable, ArrayList<Card> playerCards) {
+        getPointsForCards(cardsOnTable, playerCards);
+    }
+
+
+    public void getPointsForCards(ArrayList<Card> cardsOnTable, ArrayList<Card> playerCards) {
         ArrayList<Card> allCards = new ArrayList<>();
         allCards.addAll(cardsOnTable);
         allCards.addAll(playerCards);
 
         long hasRoyalFlush = hasRoyalFlush(allCards);
-        if (hasRoyalFlush != -1) return hasRoyalFlush;
+        if (hasRoyalFlush != -1) {
+            variation = "Poker królewski";
+            points = hasRoyalFlush;
+            return;
+        }
 
         long hasStraightFlush = hasStraightFlush(allCards);
-        if (hasStraightFlush != -1) return hasStraightFlush;
-
+        if (hasStraightFlush != -1) {
+            variation = "Poker";
+            points = hasStraightFlush;
+            return;
+        }
 
         long hasFourOfKind = hasFourOfKind(allCards);
-        if (hasFourOfKind != -1) return hasFourOfKind;
+        if (hasFourOfKind != -1) {
+            variation = "Kareta";
+            points = hasFourOfKind;
+            return;
+        }
 
         long hasFullHouse = hasFullHouse(allCards);
-        if (hasFullHouse != -1) return hasFullHouse;
+        if (hasFullHouse != -1) {
+            variation = "Full";
+            points = hasFullHouse;
+            return;
+        }
 
         long hasFlush = hasFlush(allCards);
-        if (hasFlush != -1) return hasFlush;
+        if (hasFlush != -1) {
+            variation = "Kolor";
+            points = hasFlush;
+            return;
+        }
 
         long hasStraight = hasStraight(allCards);
-        if (hasStraight != -1) return hasStraight;
+        if (hasStraight != -1) {
+            variation = "Strit";
+            points = hasStraight;
+            return;
+        }
 
         long hasThreeOfAKind = hasThreeOfAKind(allCards);
-        if (hasThreeOfAKind != -1) return hasThreeOfAKind;
+        if (hasThreeOfAKind != -1) {
+            variation = "Trójka";
+            points = hasThreeOfAKind;
+            return;
+        }
 
         long hasTwoPairs = hasTwoPairs(allCards);
-        if (hasTwoPairs != -1) return hasTwoPairs;
+        if (hasTwoPairs != -1) {
+            variation = "Dwie pary";
+            points = hasTwoPairs;
+            return;
+        }
 
         long hasPair = hasPair(allCards);
-        if (hasPair != -1) return hasPair;
+        if (hasPair != -1) {
+            variation = "Para";
+            points = hasPair;
+            return;
+        }
 
-        return checkHighCard(allCards);
+        points = checkHighCard(allCards);
+        variation = "Wysoka karta";
     }
 
     private static long hasRoyalFlush(ArrayList<Card> allCards) {
@@ -126,10 +169,6 @@ public class CardCheckerManager {
         if (pairs.isEmpty()) return -1;
 
         return 6L * multiplier + threes.get(0).ordinal() * 100L + pairs.get(0).ordinal();
-//        boolean hasThreeOfAKind = rankFrequency.containsValue(3L);
-//        boolean hasPair = rankFrequency.containsValue(2L);
-
-//        return hasThreeOfAKind && hasPair;
     }
 
     private static long hasFlush(ArrayList<Card> allCards) {
@@ -253,6 +292,6 @@ public class CardCheckerManager {
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        return sortedCards.get(0).ordinal() * 100_00_00_00L + sortedCards.get(1).ordinal() * 100_00_00L + sortedCards.get(2).ordinal() * 100_00L+ sortedCards.get(3).ordinal() * 100L + sortedCards.get(4).ordinal();
+        return sortedCards.get(0).ordinal() * 100_00_00_00L + sortedCards.get(1).ordinal() * 100_00_00L + sortedCards.get(2).ordinal() * 100_00L + sortedCards.get(3).ordinal() * 100L + sortedCards.get(4).ordinal();
     }
 }
