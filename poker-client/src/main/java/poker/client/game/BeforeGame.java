@@ -11,6 +11,9 @@ import poker.commons.socket.dataTypes.joinRoom.JoinRoomStatus;
 import java.io.IOException;
 
 public class BeforeGame {
+
+    private BeforeGame(){}
+
     public static void start() throws IOException {
         UIManager.showHomeScreen();
         int num = MyScanner.getStreamInt();
@@ -23,7 +26,6 @@ public class BeforeGame {
         ReceiveData receiveData = new ReceiveData(ActionType.CreateRoom, null);
         ReceiveData code = SocketClientManager.i.send(receiveData, true);
 
-//        MyLogger.logln(code.getData());
         UIManager.showAddedRoomScreen((double) code.getData());
         confirmReadyToPlay();
     }
@@ -67,9 +69,8 @@ public class BeforeGame {
         var receivedData = SocketClientManager.i.getDataFromServer();
 
         if(receivedData.getAction() == ActionType.StartGameInfo){
+            UIManager.showGameIsStartedScreen();
             WhileGame.start(receivedData);
         }
-
-//        gameLoop(true);
     }
 }

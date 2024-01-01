@@ -10,6 +10,6 @@ public class Card {
     private Suit suit;
 
     public String toString() {
-        return suit.toString() + " - " + rank.toString();
+        return suit.getName() + " - " + rank.getName();
     }
 }

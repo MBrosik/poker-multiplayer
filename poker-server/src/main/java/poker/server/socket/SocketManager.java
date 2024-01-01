@@ -37,6 +37,7 @@ public class SocketManager {
             case Bet -> session.getRoom().receiveBetFromPlayer(session.getPlayer(), receiveData);
             // case Check -> session.getRoom().receiveCheckFromPlayer(session.getPlayer(), receiveData);
             case Pass -> session.getRoom().receivePassFromPlayer(session.getPlayer(), receiveData);
+            case ReadyForNextRound -> session.getRoom().infoFromPlayerAboutNextTurn(session, receiveData);
         }
     }
     public static void sendToClient(SelectionKey key, ReceiveData data) throws IOException {

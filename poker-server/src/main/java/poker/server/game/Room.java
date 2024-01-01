@@ -1,6 +1,5 @@
 package poker.server.game;
 
-import jdk.jshell.spi.ExecutionControl;
 import lombok.Getter;
 import poker.commons.JSONManager;
 import poker.commons.MyLogger;
@@ -14,14 +13,13 @@ import poker.server.socket.SocketManager;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class Room {
     public enum RoomState {
         PlayerGathering,
         Betting,
-        EndGame
+        EndRound
     }
 
     public static final int minimumBet = 5;
@@ -76,7 +74,11 @@ public class Room {
 
 
     public void startGame() throws IOException {
-        if (roomState != RoomState.PlayerGathering) return;
+        if (
+                roomState != RoomState.PlayerGathering
+                        && roomState != RoomState.EndRound
+        ) return;
+
         roomState = RoomState.Betting;
 
         choseBlinds();
@@ -88,6 +90,7 @@ public class Room {
         sendInfoAboutBet();
     }
 
+
     public void nextBetting() throws IOException {
         if (roomState != RoomState.Betting) return;
 
@@ -95,19 +98,19 @@ public class Room {
 
         MyLogger.logln(String.valueOf(countAfterLastRaise));
 
-        if(playersInGame.size() == 1){
-            while(!dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){}
+        if (playersInGame.size() == 1) {
+            while (!dealCardsOnTheTableAndCheckIfCountOfCardsIs5()) {
+            }
             zeroValues();
             endOfTurn();
-        } else if(countAfterLastRaise >= playersInGame.size()){
-            if(dealCardsOnTheTableAndCheckIfCountOfCardsIs5()){
+        } else if (countAfterLastRaise >= playersInGame.size()) {
+            if (dealCardsOnTheTableAndCheckIfCountOfCardsIs5()) {
                 zeroValues();
                 endOfTurn();
-            }
-            else{
+            } else {
                 prepareForNextRoundOfBetting();
             }
-        } else{
+        } else {
             choseNextBetInd();
             sendInfoAboutBet();
         }
@@ -129,8 +132,8 @@ public class Room {
         sendInfoAboutBet();
     }
 
-    public void zeroValues(){
-        for (Player player: players) {
+    public void zeroValues() {
+        for (Player player : players) {
             moneyOnTable += player.giveBetMoney();
         }
 
@@ -140,15 +143,14 @@ public class Room {
     }
 
     public boolean dealCardsOnTheTableAndCheckIfCountOfCardsIs5() {
-        if(cardsOnTable.size() == 0){
+        if (cardsOnTable.size() == 0) {
             for (int i = 0; i < 3; i++) {
                 cardsOnTable.add(deck.getRandomCard());
             }
             return false;
-        } else if(cardsOnTable.size() == 5){
+        } else if (cardsOnTable.size() == 5) {
             return true;
-        }
-        else if(cardsOnTable.size() >= 3){
+        } else if (cardsOnTable.size() >= 3) {
             cardsOnTable.add(deck.getRandomCard());
             return false;
         }
@@ -242,7 +244,7 @@ public class Room {
         nextBetting();
     }
 
-    public void receivePassFromPlayer(Player player, ReceiveData receiveData) throws IOException{
+    public void receivePassFromPlayer(Player player, ReceiveData receiveData) throws IOException {
         if (roomState != RoomState.Betting) return;
         if (players.indexOf(player) != currentBetInd) return;
 
@@ -255,34 +257,29 @@ public class Room {
     public void endOfTurn() throws IOException {
         LinkedHashMap<Player, CardCheckerManager> pointMap = new LinkedHashMap<>();
 
-        for (Player player: players) {
+        for (Player player : players) {
             pointMap.put(player, new CardCheckerManager(cardsOnTable, player.getCardsInHand()));
         }
 
-
-        MyLogger.logln("Noice EndOfTurn");
-        for (var xD: pointMap.entrySet()){
-            MyLogger.logln(JSONManager.jsonStringify1(xD.getKey().getCardsInHand()));
-            MyLogger.logln(String.valueOf(xD.getValue()));
-        }
-
-        CardCheckerManager maxValue = pointMap.values().stream().max(Comparator.comparingLong(el -> el.points)).orElseThrow(() -> {
-            MyLogger.elog("Something wrong with maxValue");
-            return new IllegalStateException("Something wrong with maxValue");
-        });;
+        var maxValue = pointMap.entrySet().stream()
+                .filter(el -> !el.getKey().isPassed())
+                .max(Comparator.comparingLong(el->el.getValue().points)).orElseThrow(() -> {
+                    MyLogger.elog("Something wrong with maxValue");
+                    return new IllegalStateException("Something wrong with maxValue");
+                }).getValue();
 
 
         List<Player> bestPlayers = pointMap.entrySet()
                 .stream()
-                .filter(el -> Objects.equals(el.getValue().points, maxValue.points))
+                .filter(el -> Objects.equals(el.getValue().points, maxValue.points) && !el.getKey().isPassed())
                 .map(Map.Entry::getKey)
                 .toList();
 
-        for (var player: bestPlayers) {
+        for (var player : bestPlayers) {
             player.setMoney(player.getMoney() + moneyOnTable / bestPlayers.size());
         }
 
-        for (var entry: pointMap.entrySet()) {
+        for (var entry : pointMap.entrySet()) {
             var player = entry.getKey();
             var value = entry.getValue();
             boolean won = bestPlayers.contains(entry.getKey());
@@ -293,11 +290,61 @@ public class Room {
                     won,
                     bestPlayers.size(),
                     value.variation,
-                    won ? moneyOnTable / bestPlayers.size():0,
+                    won ? moneyOnTable / bestPlayers.size() : 0,
                     player.getMoney()
             );
 
             ReceiveData receiveData = new ReceiveData(ActionType.EndTurn, endGameInfo);
+            SocketManager.sendToClient(player.getSessionData().getKey(), receiveData);
+        }
+
+        afterEndOfTurn();
+    }
+
+    private void afterEndOfTurn() {
+        roomState = RoomState.EndRound;
+        smallBlindInd = -1;
+        bigBlindInd = -1;
+        currentBetInd = -1;
+        deck = new Deck();
+        cardsOnTable = new ArrayList<>();
+
+        players.removeIf(el -> el.getMoney() == 0);
+
+        for (Player player : players) {
+            player.setPassed(false);
+            player.setCardsInHand(new ArrayList<>());
+            player.setAttendingInNextRound(false);
+        }
+    }
+
+    public void infoFromPlayerAboutNextTurn(SessionData session, ReceiveData receiveData) throws IOException {
+        if (roomState != RoomState.EndRound) return;
+        Player player = session.getPlayer();
+        boolean ready = JSONManager.reparseJson(receiveData.getData(), Boolean.class);
+
+        if (ready) {
+            player.setAttendingInNextRound(true);
+        } else {
+            players.remove(player);
+        }
+
+        if (players.size() < minSize) {
+            sendInfoAboutEndOfGame();
+            return;
+        }
+
+        boolean allAttending = players.stream().allMatch(Player::isAttendingInNextRound);
+
+
+        if (allAttending) {
+            startGame();
+        }
+    }
+
+    public void sendInfoAboutEndOfGame() throws IOException {
+        for (Player player : players) {
+            ReceiveData receiveData = new ReceiveData(ActionType.EndGame, true);
             SocketManager.sendToClient(player.getSessionData().getKey(), receiveData);
         }
     }

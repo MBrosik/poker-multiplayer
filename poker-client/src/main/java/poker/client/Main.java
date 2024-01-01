@@ -8,6 +8,6 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         BeforeGame.start();
-        SocketClientManager.i.socketChannel.close();
+        SocketClientManager.i.getSocketChannel().close();
     }
 }

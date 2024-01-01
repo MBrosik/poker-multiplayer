@@ -12,4 +12,7 @@ public enum ActionType {
 
     NextRound,
     EndTurn,
+
+    ReadyForNextRound,
+    EndGame,
 }

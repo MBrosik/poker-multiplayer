@@ -4,12 +4,16 @@ import poker.commons.MyLogger;
 import poker.commons.game.elements.Card;
 import poker.commons.socket.dataTypes.whileGame.*;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class UIManager {
+    private static String showOptionString = "Wybierz opcje:";
+
+    private UIManager(){}
+
     public static void showHomeScreen() {
         MyLogger.logLineSep();
-        MyLogger.logln("Wybierz opcje:");
+        MyLogger.logln(showOptionString);
         MyLogger.logln("1. Stwórz pokój ");
         MyLogger.logln("2. Dołącz do istniejącego pokoju ");
         MyLogger.logLineSep();
@@ -19,7 +23,7 @@ public class UIManager {
         MyLogger.logLineSep();
         MyLogger.logln("Twój pokój został stworzony");
         MyLogger.logf("Numer pokoju: %d\n", (long) code);
-        MyLogger.logln("Wybierz opcje:");
+        MyLogger.logln(showOptionString);
         MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
         MyLogger.logLineSep();
     }
@@ -27,7 +31,7 @@ public class UIManager {
     public static void showAddedToRoomScreen() {
         MyLogger.logLineSep();
         MyLogger.logln("Zostałeś dodany do pokoju");
-        MyLogger.logln("Wybierz opcje:");
+        MyLogger.logln(showOptionString);
         MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
         MyLogger.logLineSep();
     }
@@ -51,7 +55,7 @@ public class UIManager {
         MyLogger.logLineSep();
     }
 
-    public static void showYourCards(ArrayList<Card> cards) {
+    public static void showYourCards(List<Card> cards) {
         MyLogger.logLineSep();
         MyLogger.logln("O to Twoje karty:");
 
@@ -81,7 +85,7 @@ public class UIManager {
         MyLogger.logln("O to karty na stole:");
 
         for (Card card : data.getCardsOnTheTable()) {
-            MyLogger.logln(card.toString());
+            MyLogger.logln("\t" + card.toString());
         }
 
         MyLogger.logLineSep();
@@ -103,10 +107,25 @@ public class UIManager {
             MyLogger.logln("Wygrałeś!");
             MyLogger.logf("Zebrałeś: %d \n", endGameInfo.getHowMuchIWon());
         } else{
-            MyLogger.logln("Niestety przegrałeś");
+            MyLogger.logln("Niestety przegrałeś tą rundę");
         }
 
-        MyLogger.logf("Twój stan konta: %d \n", endGameInfo.getMyMoney());
+        if(endGameInfo.getMyMoney() == 0){
+            MyLogger.logln("Zostałeś bez niczego. Zostajesz wyrzucony z gry");
+        } else {
+            MyLogger.logf("Twój stan konta: %d \n", endGameInfo.getMyMoney());
+        }
+
+        MyLogger.logLineSep();
+    }
+
+    public static void showWaitForNewTurn(){
+        MyLogger.logLineSep();
+        MyLogger.logln("Za chwilę rozpocznie się kolejna tura");
+        MyLogger.logln(showOptionString);
+        MyLogger.logln("1. Oznacz, że jesteś gotowy do następnej tury ");
+        MyLogger.logln("2. Oznacz, że rezygnujesz ");
+        MyLogger.logLineSep();
 
     }
 }

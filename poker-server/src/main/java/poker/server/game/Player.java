@@ -1,6 +1,5 @@
 package poker.server.game;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import poker.commons.game.elements.Card;
@@ -38,6 +37,10 @@ public class Player {
     @Getter
     @Setter
     private boolean passed = false;
+
+    @Getter
+    @Setter
+    private boolean attendingInNextRound = false;
 
 //    String name;
 

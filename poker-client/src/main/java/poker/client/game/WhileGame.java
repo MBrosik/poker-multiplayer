@@ -17,9 +17,11 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class WhileGame {
+
+    private WhileGame(){}
+
     public static void start(ReceiveData receiveData) throws IOException {
         StartGameDataInfo data = JSONManager.reparseJson(receiveData.getData(), StartGameDataInfo.class);
-        UIManager.showGameIsStartedScreen();
 
         if (receiveData.getAction() == ActionType.StartGameInfo) {
             UIManager.showInfoAboutBlinds(data);
@@ -50,7 +52,7 @@ public class WhileGame {
             EndGameInfo endGameInfo = JSONManager.reparseJson(receiveData.getData(), EndGameInfo.class);
 
             UIManager.showEndTurnScreen(endGameInfo);
-//            MyLogger.logln(endGameInfo.isWin());
+            if(endGameInfo.getMyMoney() != 0) afterEndOfTurn();
         }
     }
 
@@ -59,26 +61,24 @@ public class WhileGame {
         PlayerChoices command = PlayerChoices.Bet;
         int bet = -1;
 
-        while (true) {
+        boolean stopWhileLoop = true;
+
+        while (stopWhileLoop) {
             MyLogger.logln("Podaj stawkę, lub wpisz 'Pass', jeżeli chcesz spasować");
+            MyLogger.logln("Runda betowania skończy się kiedy każdy gracz poda tę samą stawkę");
             var tempBet = MyScanner.getStreamString("Podaj: ");
             if (Objects.equals(tempBet, "Pass")) {
                 MyLogger.logln("Pass");
                 command = PlayerChoices.Pass;
-                break;
+                stopWhileLoop = false;
             }
-//            else if (Objects.equals(tempBet, "check")) {
-//                MyLogger.logln("check");
-//                command = PlayerChoices.Check;
-//                break;
-//            }
             else {
                 try {
                     bet = Integer.parseInt(tempBet);
-                    if(data.getCurrentBet() <= bet && bet <= data.getMoney()) break;
+                    if(data.getCurrentBet() <= bet && bet <= data.getMoney()) stopWhileLoop = false;
                     if(bet == data.getMoney()) {
                         MyLogger.logln("All in");
-                        break;
+                        stopWhileLoop = false;
                     }
                     MyLogger.logln("Niewłaściwa stawka");
 
@@ -89,16 +89,51 @@ public class WhileGame {
             }
         }
 
+        sendBet(command, bet);
+    }
+
+    private static void sendBet(PlayerChoices command, int bet) {
         ReceiveData sendData;
         if (command == PlayerChoices.Bet) {
             sendData = new ReceiveData(ActionType.Bet, bet);
         }
-//        else if (command == PlayerChoices.Check) {
-//            sendData = new ReceiveData(ActionType.Check, null);
-//        }
         else {
             sendData = new ReceiveData(ActionType.Pass, null);
         }
         SocketClientManager.i.send(sendData, false);
+    }
+
+    public static void afterEndOfTurn() throws IOException {
+        UIManager.showWaitForNewTurn();
+
+        boolean stopWhileLoop = true;
+
+        while(stopWhileLoop){
+            String num = MyScanner.getStreamString();
+
+            if(num.equals("1")){
+                var data = new ReceiveData(ActionType.ReadyForNextRound, true);
+                SocketClientManager.i.send(data, false);
+                MyLogger.logln("Zostałeś oznaczony jako gotowy do gry. \nZa chwilę nowa runda się rozpocznie.");
+
+                stopWhileLoop = false;
+            } else if(num.equals("2")){
+                var data = new ReceiveData(ActionType.ReadyForNextRound, false);
+                SocketClientManager.i.send(data, false);
+                MyLogger.logln("Wychodzisz z gry");
+                stopWhileLoop = false;
+            }
+            else{
+                MyLogger.logln("Zła opcja. Wybierz ponownie");
+            }
+        }
+
+        var receivedData = SocketClientManager.i.getDataFromServer();
+
+        if(receivedData.getAction() == ActionType.StartGameInfo){
+            start(receivedData);
+        } else{
+            MyLogger.logln("Gra się zakończyła. Za mało graczy.");
+        }
     }
 }
