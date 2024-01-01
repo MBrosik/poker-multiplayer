@@ -1,7 +1,5 @@
 package poker.commons;
 
-import java.util.Scanner;
-
 public class MyLogger {
     private static final String LINE_SEP = "==========================================================================";
 

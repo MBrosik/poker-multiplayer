@@ -1,5 +1,7 @@
 package poker.commons;
 
 public class Constants {
-    public static final int byteSize = 2048;
+    private Constants(){}
+
+    public static final int BYTE_SIZE = 2048;
 }

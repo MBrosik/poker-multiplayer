@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 public class MyScanner {
+    private static final String INPUT_STRING = "Wpisz: ";
+    private MyScanner(){}
+
     private static Scanner scanner = new Scanner(System.in);
 
     public static void changeInput(InputStream io){
@@ -11,7 +14,7 @@ public class MyScanner {
     }
 
     public static String getStreamString(){
-        MyLogger.log("Wpisz: ");
+        MyLogger.log(INPUT_STRING);
         return scanner.next();
     }
     public static String getStreamString(String msg){
@@ -19,17 +22,16 @@ public class MyScanner {
         return scanner.next();
     }
     public static int getStreamInt(){
-        MyLogger.log("Wpisz: ");
+        MyLogger.log(INPUT_STRING);
         return scanner.nextInt();
     }
 
     public static int getStreamInt(String msg){
         MyLogger.log(msg);
-//        scanner.nextLong();
         return scanner.nextInt();
     }
     public static long getStreamLong(){
-        MyLogger.log("Wpisz: ");
+        MyLogger.log(INPUT_STRING);
         return scanner.nextLong();
     }
 

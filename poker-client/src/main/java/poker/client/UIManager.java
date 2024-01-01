@@ -2,18 +2,18 @@ package poker.client;
 
 import poker.commons.MyLogger;
 import poker.commons.game.elements.Card;
-import poker.commons.socket.dataTypes.whileGame.*;
+import poker.commons.socket.data_types.while_game.*;
 
 import java.util.List;
 
 public class UIManager {
-    private static String showOptionString = "Wybierz opcje:";
+    private static final String SHOW_OPTION_STRING = "Wybierz opcje:";
 
     private UIManager(){}
 
     public static void showHomeScreen() {
         MyLogger.logLineSep();
-        MyLogger.logln(showOptionString);
+        MyLogger.logln(SHOW_OPTION_STRING);
         MyLogger.logln("1. Stwórz pokój ");
         MyLogger.logln("2. Dołącz do istniejącego pokoju ");
         MyLogger.logLineSep();
@@ -23,7 +23,7 @@ public class UIManager {
         MyLogger.logLineSep();
         MyLogger.logln("Twój pokój został stworzony");
         MyLogger.logf("Numer pokoju: %d\n", (long) code);
-        MyLogger.logln(showOptionString);
+        MyLogger.logln(SHOW_OPTION_STRING);
         MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
         MyLogger.logLineSep();
     }
@@ -31,7 +31,7 @@ public class UIManager {
     public static void showAddedToRoomScreen() {
         MyLogger.logLineSep();
         MyLogger.logln("Zostałeś dodany do pokoju");
-        MyLogger.logln(showOptionString);
+        MyLogger.logln(SHOW_OPTION_STRING);
         MyLogger.logln("1. Oznacz, że jesteś gotowy do gry ");
         MyLogger.logLineSep();
     }
@@ -44,9 +44,9 @@ public class UIManager {
 
     public static void showInfoAboutBlinds(StartGameDataInfo startGameDataInfo) {
         MyLogger.logLineSep();
-        if (startGameDataInfo.getPlayerType() == PlayerType.SmallBlind) {
+        if (startGameDataInfo.getPlayerType() == PlayerType.SMALL_BLIND) {
             MyLogger.logln("Zostałeś SmallBlind");
-        } else if (startGameDataInfo.getPlayerType() == PlayerType.BigBlind) {
+        } else if (startGameDataInfo.getPlayerType() == PlayerType.BIG_BLIND) {
             MyLogger.logln("Zostałeś BigBlind");
         }
 
@@ -122,7 +122,7 @@ public class UIManager {
     public static void showWaitForNewTurn(){
         MyLogger.logLineSep();
         MyLogger.logln("Za chwilę rozpocznie się kolejna tura");
-        MyLogger.logln(showOptionString);
+        MyLogger.logln(SHOW_OPTION_STRING);
         MyLogger.logln("1. Oznacz, że jesteś gotowy do następnej tury ");
         MyLogger.logln("2. Oznacz, że rezygnujesz ");
         MyLogger.logLineSep();

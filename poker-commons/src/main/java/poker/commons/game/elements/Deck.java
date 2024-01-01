@@ -1,13 +1,15 @@
 package poker.commons.game.elements;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 
 public class Deck {
     private final ArrayList<Card> freeCards = new ArrayList<>();
+    private final SecureRandom random = new SecureRandom();
 
     public Deck() {
         for (Rank rank : Rank.values()) {
-            if(rank == Rank.One) continue;
+            if(rank == Rank.ONE) continue;
             for (Suit suit : Suit.values()) {
                 freeCards.add(new Card(rank, suit));
             }
@@ -15,6 +17,6 @@ public class Deck {
     }
 
     public Card getRandomCard(){
-        return freeCards.remove((int) (Math.random() * freeCards.size()));
+        return freeCards.remove(random.nextInt(freeCards.size()));
     }
 }

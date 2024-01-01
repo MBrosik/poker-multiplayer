@@ -26,12 +26,12 @@ public class Main {
     public static void main(String[] args) {
         try(
                 Selector selector = Selector.open();
-                ServerSocketChannel serverSocket = ServerSocketChannel.open();
+                ServerSocketChannel serverSocket = ServerSocketChannel.open()
         ) {
             serverSocket.bind(new InetSocketAddress("localhost", 8080));
             serverSocket.configureBlocking(false);
             serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-            ByteBuffer buffer = ByteBuffer.allocate(Constants.byteSize);
+            ByteBuffer buffer = ByteBuffer.allocate(Constants.BYTE_SIZE);
 
 
             while (variable) {
@@ -66,7 +66,7 @@ public class Main {
             if (r == -1 || new String(buffer.array()).trim()
                     .equals(POISON_PILL)) {
                 client.close();
-                System.out.println("Not accepting client messages anymore");
+                MyLogger.logln("Not accepting client messages anymore");
             } else {
                 buffer.flip();
 
@@ -76,11 +76,11 @@ public class Main {
 
                 SocketManager.onMessage(charBuffer, key);
 
-                System.out.print(":) " + charBuffer.toString());
+                MyLogger.log(":) " + charBuffer);
                 buffer.clear();
             }
         } catch (IOException io) {
-            System.out.println("Not accepting client messages anymore");
+            MyLogger.logln("Not accepting client messages anymore");
             client.close();
         }
     }
@@ -89,7 +89,5 @@ public class Main {
         SocketChannel client = serverSocket.accept();
         client.configureBlocking(false);
         client.register(selector, SelectionKey.OP_READ);
-
-//        System.out.println("Connection accepted: "+ client.getRemoteAddress());
     }
 }

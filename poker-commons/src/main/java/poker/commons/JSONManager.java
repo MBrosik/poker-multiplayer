@@ -6,6 +6,8 @@ import poker.commons.socket.ReceiveData;
 import java.nio.ByteBuffer;
 
 public class JSONManager {
+    private JSONManager(){}
+
     public static ReceiveData jsonParse(String charbuff){
         Gson gson = new Gson();
 
@@ -27,9 +29,8 @@ public class JSONManager {
 
     public static <T> String jsonStringify1(T object){
         Gson gson = new Gson();
-        String message = gson.toJson(object);
 
-        return message;
+        return gson.toJson(object);
     }
 
     public static <T> T reparseJson(Object object, Class<T> clazz){

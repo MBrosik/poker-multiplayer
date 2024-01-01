@@ -3,7 +3,7 @@ package poker.commons.socket;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import poker.commons.socket.dataTypes.ActionType;
+import poker.commons.socket.data_types.ActionType;
 
 @Data
 @AllArgsConstructor

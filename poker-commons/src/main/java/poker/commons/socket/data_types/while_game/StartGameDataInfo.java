@@ -1,4 +1,4 @@
-package poker.commons.socket.dataTypes.whileGame;
+package poker.commons.socket.data_types.while_game;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

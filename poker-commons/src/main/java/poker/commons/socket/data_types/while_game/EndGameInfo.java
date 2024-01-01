@@ -1,17 +1,16 @@
-package poker.commons.socket.dataTypes.whileGame;
+package poker.commons.socket.data_types.while_game;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import poker.commons.game.elements.Card;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 public class EndGameInfo {
-    private ArrayList<Card> cardsOnTable;
-    private ArrayList<Card> cardsInHand;
+    private List<Card> cardsOnTable;
+    private List<Card> cardsInHand;
     private boolean win;
     private int countOfWinner;
     private String variation;

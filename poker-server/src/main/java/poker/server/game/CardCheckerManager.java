@@ -1,5 +1,6 @@
 package poker.server.game;
 
+import lombok.Getter;
 import poker.commons.game.elements.Card;
 import poker.commons.game.elements.Rank;
 import poker.commons.game.elements.Suit;
@@ -8,17 +9,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CardCheckerManager {
-    public final static long multiplier = 100_00_00_00_00L;
+    public static final long MULTIPLIER = 100_00_00_00_00L;
 
-    public long points;
-    public String variation;
+    @Getter
+    private long points;
+    @Getter
+    private String variation;
 
-    public CardCheckerManager(ArrayList<Card> cardsOnTable, ArrayList<Card> playerCards) {
+    public CardCheckerManager(List<Card> cardsOnTable, List<Card> playerCards) {
         getPointsForCards(cardsOnTable, playerCards);
     }
 
 
-    public void getPointsForCards(ArrayList<Card> cardsOnTable, ArrayList<Card> playerCards) {
+    public void getPointsForCards(List<Card> cardsOnTable, List<Card> playerCards) {
         ArrayList<Card> allCards = new ArrayList<>();
         allCards.addAll(cardsOnTable);
         allCards.addAll(playerCards);
@@ -105,9 +108,9 @@ public class CardCheckerManager {
                             .toList();
 
                     int lastIndex = straightRanks.size() - 1;
-                    if (straightRanks.get(lastIndex) == Rank.Ace &&
-                            straightRanks.get(lastIndex - 4) == Rank.Ten) {
-                        return 9L * multiplier + hasStraightFlush - 4L * multiplier;
+                    if (straightRanks.get(lastIndex) == Rank.ACE &&
+                            straightRanks.get(lastIndex - 4) == Rank.TEN) {
+                        return 9L * MULTIPLIER + hasStraightFlush - 4L * MULTIPLIER;
                     }
                 }
             }
@@ -122,7 +125,7 @@ public class CardCheckerManager {
 
         for (List<Card> suitCards : cardsBySuit.values()) {
             if (suitCards.size() >= 5) {
-                return 8L * multiplier + hasStraight((ArrayList<Card>) suitCards) - 4L * multiplier;
+                return 8L * MULTIPLIER + hasStraight((ArrayList<Card>) suitCards) - 4L * MULTIPLIER;
             }
         }
         return -1;
@@ -145,7 +148,7 @@ public class CardCheckerManager {
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        return 7L * multiplier + fourths.get(0).ordinal() * 100L + notFourths.get(0).ordinal();
+        return 7L * MULTIPLIER + fourths.get(0).ordinal() * 100L + notFourths.get(0).ordinal();
     }
 
     private static long hasFullHouse(ArrayList<Card> allCards) {
@@ -168,7 +171,7 @@ public class CardCheckerManager {
 
         if (pairs.isEmpty()) return -1;
 
-        return 6L * multiplier + threes.get(0).ordinal() * 100L + pairs.get(0).ordinal();
+        return 6L * MULTIPLIER + threes.get(0).ordinal() * 100L + pairs.get(0).ordinal();
     }
 
     private static long hasFlush(ArrayList<Card> allCards) {
@@ -189,7 +192,7 @@ public class CardCheckerManager {
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        return 5L * multiplier + sortedRanks.get(0).ordinal();
+        return 5L * MULTIPLIER + sortedRanks.get(0).ordinal();
     }
 
     private static long hasStraight(ArrayList<Card> cards) {
@@ -198,8 +201,8 @@ public class CardCheckerManager {
         if (uniqueRanks.size() < 5) {
             return -1;
         }
-        if (uniqueRanks.contains(Rank.Ace)) {
-            uniqueRanks.add(Rank.One);
+        if (uniqueRanks.contains(Rank.ACE)) {
+            uniqueRanks.add(Rank.ONE);
         }
 
         List<Rank> sortedUniqueRanks = uniqueRanks.stream()
@@ -217,7 +220,7 @@ public class CardCheckerManager {
         if (bestRank == null)
             return -1;
 
-        return 4L * multiplier + bestRank.ordinal();
+        return 4L * MULTIPLIER + bestRank.ordinal();
     }
 
     private static long hasThreeOfAKind(ArrayList<Card> cards) {
@@ -237,7 +240,7 @@ public class CardCheckerManager {
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        return 3L * multiplier + threes.get(0).ordinal() * 100L + notThrees.get(0).ordinal();
+        return 3L * MULTIPLIER + threes.get(0).ordinal() * 100L + notThrees.get(0).ordinal();
     }
 
     private static long hasTwoPairs(ArrayList<Card> cards) {
@@ -253,14 +256,14 @@ public class CardCheckerManager {
 
         if (pairs.size() != 2) return -1;
 
-        List<Rank> twoBestPairs = new ArrayList<>(List.of(new Rank[]{pairs.get(0), pairs.get(1)}));
+        List<Rank> twoBestPairs = List.of(pairs.get(0), pairs.get(1));
 
         List<Rank> notPairs = rankFrequency.keySet().stream()
                 .filter(aLong -> !twoBestPairs.contains(aLong))
                 .sorted(Comparator.reverseOrder())
                 .toList();
 
-        return 2L * multiplier + pairs.get(0).ordinal() * 100_00L + pairs.get(1).ordinal() * 100L + notPairs.get(0).ordinal();
+        return 2L * MULTIPLIER + pairs.get(0).ordinal() * 100_00L + pairs.get(1).ordinal() * 100L + notPairs.get(0).ordinal();
     }
 
     private static long hasPair(ArrayList<Card> cards) {
@@ -282,7 +285,7 @@ public class CardCheckerManager {
                 .toList();
 
 
-        return multiplier + (pairs.get(0).ordinal() * 100L) + notPairs.get(0).ordinal();
+        return MULTIPLIER + (pairs.get(0).ordinal() * 100L) + notPairs.get(0).ordinal();
 
     }
 

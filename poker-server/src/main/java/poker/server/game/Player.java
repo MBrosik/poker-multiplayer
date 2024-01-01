@@ -11,8 +11,7 @@ import java.util.ArrayList;
 //@Data
 public class Player {
     @Getter
-    @Setter
-    public static final int startMoney = 200;
+    public static final int START_MONEY = 200;
 
     @Getter
     @Setter
@@ -28,7 +27,7 @@ public class Player {
 
     @Getter
     @Setter
-    private int money = startMoney;
+    private int money = START_MONEY;
 
     @Getter
     @Setter
@@ -41,8 +40,6 @@ public class Player {
     @Getter
     @Setter
     private boolean attendingInNextRound = false;
-
-//    String name;
 
     public Player(SessionData sessionData){
         this.sessionData = sessionData;
@@ -62,9 +59,4 @@ public class Player {
         bet = 0;
         return temp;
     }
-
-//    @Override
-//    public int hashCode() {
-//        return this.hashCode();
-//    }
 }

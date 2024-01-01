@@ -3,6 +3,7 @@ package poker.client;
 import lombok.Getter;
 import poker.commons.Constants;
 import poker.commons.JSONManager;
+import poker.commons.MyLogger;
 import poker.commons.socket.ReceiveData;
 
 import java.io.IOException;
@@ -21,7 +22,7 @@ public class SocketClientManager {
             socketChannel = SocketChannel.open();
             socketChannel.connect(new InetSocketAddress("localhost", 8080));
         } catch (IOException e) {
-            e.printStackTrace();
+            MyLogger.elogln("Something wrong with SocketClientManager");
         }
     }
 
@@ -31,7 +32,7 @@ public class SocketClientManager {
             socketChannel.write(buffer);
 
             buffer.clear();
-            buffer = ByteBuffer.allocate(Constants.byteSize);
+            buffer = ByteBuffer.allocate(Constants.BYTE_SIZE);
 
             if (withResponse) {
                 socketChannel.read(buffer);
@@ -42,13 +43,13 @@ public class SocketClientManager {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            MyLogger.elogln("Something wrong with sending to server");
         }
         return null;
     }
 
     public ReceiveData getDataFromServer() throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(Constants.byteSize);
+        ByteBuffer buffer = ByteBuffer.allocate(Constants.BYTE_SIZE);
         socketChannel.read(buffer);
 
         String response = new String(buffer.array()).trim();

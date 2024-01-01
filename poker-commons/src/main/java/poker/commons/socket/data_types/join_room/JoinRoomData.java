@@ -1,4 +1,4 @@
-package poker.commons.socket.dataTypes.joinRoom;
+package poker.commons.socket.data_types.join_room;
 
 import lombok.Data;
 
