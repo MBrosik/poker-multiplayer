@@ -6,7 +6,7 @@ https://pokertexas.net/zasady-gry-w-texas-holdem/
 Na początku gracz musi stworzyć pokój, albo do niego dołączyć.
 Gra się rozpocznie jeżeli wszyscy gracze zaznaczą, że już są gotowi.
 
-Każdy gracz ma na początku 200 źetonów.
+Każdy gracz ma na początku 200 żetonów.
 Również jest na początku wybierany Small Blind i Big Blind
 Pierwszy daje po 5 a drugi po 10.
 Następni gracze muszą wyrównać, albo dać kwotę wyższą.
