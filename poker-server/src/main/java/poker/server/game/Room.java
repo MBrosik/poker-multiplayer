@@ -15,10 +15,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
 
-import javax.annotation.Generated;
 
-
-@Generated("Room")
 public class Room {
     public enum RoomState {
         PLAYER_GATHERING,

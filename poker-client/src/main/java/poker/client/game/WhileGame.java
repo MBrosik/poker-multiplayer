@@ -16,10 +16,7 @@ import poker.commons.socket.data_types.while_game.StartGameDataInfo;
 import java.io.IOException;
 import java.util.Objects;
 
-import javax.annotation.Generated;
 
-
-@Generated({})
 public class WhileGame {
 
     private WhileGame(){}
