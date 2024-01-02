@@ -15,7 +15,10 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
 
+import javax.annotation.Generated;
 
+
+@Generated("Room")
 public class Room {
     public enum RoomState {
         PLAYER_GATHERING,
@@ -47,7 +50,7 @@ public class Room {
 
     private List<Card> cardsOnTable = new ArrayList<>();
 
-    Room() {
+    public Room() {
         int min = 0;
         int max = 100;
 

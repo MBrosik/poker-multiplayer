@@ -125,7 +125,10 @@ public class CardCheckerManager {
 
         for (List<Card> suitCards : cardsBySuit.values()) {
             if (suitCards.size() >= 5) {
-                return 8L * MULTIPLIER + hasStraight((ArrayList<Card>) suitCards) - 4L * MULTIPLIER;
+                var hasStraight = hasStraight((ArrayList<Card>) suitCards);
+                if(hasStraight != -1){
+                    return 8L * MULTIPLIER + hasStraight - 4L * MULTIPLIER;
+                }
             }
         }
         return -1;

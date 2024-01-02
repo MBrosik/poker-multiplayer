@@ -3,7 +3,7 @@ package poker.commons.game.elements;
 public enum Suit {
     DIAMONDS("Dzwonek"),
     CLUBS("Żołądź"),
-    HEARTHS("Serce"),
+    HEARTS("Serce"),
     SPADES("Wino");
 
     private final String name;

@@ -1,9 +1,12 @@
 package poker.commons.game.elements;
 
+import lombok.Getter;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
 public class Deck {
+    @Getter
     private final ArrayList<Card> freeCards = new ArrayList<>();
     private final SecureRandom random = new SecureRandom();
 
@@ -17,6 +20,7 @@ public class Deck {
     }
 
     public Card getRandomCard(){
+        if(freeCards.isEmpty()) return null;
         return freeCards.remove(random.nextInt(freeCards.size()));
     }
 }

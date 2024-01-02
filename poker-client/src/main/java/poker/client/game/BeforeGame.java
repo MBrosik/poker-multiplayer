@@ -10,6 +10,10 @@ import poker.commons.socket.data_types.join_room.JoinRoomStatus;
 
 import java.io.IOException;
 
+import javax.annotation.Generated;
+
+
+@Generated({})
 public class BeforeGame {
 
     private BeforeGame(){}

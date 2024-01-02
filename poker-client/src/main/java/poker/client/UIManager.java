@@ -60,7 +60,7 @@ public class UIManager {
         MyLogger.logln("O to Twoje karty:");
 
         for (Card card : cards) {
-            MyLogger.logln(card.toString());
+            MyLogger.logln("\t"+card.toString());
         }
         MyLogger.logLineSep();
     }
